@@ -38,7 +38,7 @@ class YandereAppTestCase(unittest.TestCase):
     def test_index_route(self):
         res = self.app.get('/')
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'Shippori Mincho', res.data)
+        self.assertIn('4枠 人数カウンター'.encode('utf-8'), res.data)
 
     def test_socketio_connection(self):
         client = socketio.test_client(app)
