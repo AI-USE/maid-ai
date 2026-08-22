@@ -8,7 +8,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'yandere_horror_escape_secret_key_2025')
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent', max_http_buffer_size=5 * 1024 * 1024)
 
 def load_json(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -20,7 +20,6 @@ TITLES = load_json('titles.json')
 # Total game duration in seconds
 GAME_DURATION_SECONDS = 180
 
-# Generate random escape codes for rooms
 def generate_escape_code():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
@@ -34,6 +33,7 @@ def init_room(room_id):
         "start_time": None,   # Unix timestamp when timer started
         "duration": GAME_DURATION_SECONDS,
         "escape_code": generate_escape_code(),
+        "camera_enabled": False,  # Remote camera streaming status
         "clients": {}  # sid: {device_name, current_q, continues, status, clear_time, title, comment}
     }
 
@@ -101,7 +101,6 @@ def handle_join_room(data):
     join_room(room_id)
     room = rooms_state[room_id]
 
-    # Register/update client in room
     room['clients'][request.sid] = {
         "sid": request.sid,
         "device_name": device_name,
@@ -113,13 +112,13 @@ def handle_join_room(data):
         "comment": data.get('comment', '')
     }
 
-    # Emit sync response to joining client
     emit('sync_response', {
         "room_id": room_id,
         "room_status": room['status'],
         "start_time": room['start_time'],
         "duration": room['duration'],
         "escape_code": room['escape_code'],
+        "camera_enabled": room['camera_enabled'],
         "client_state": room['clients'][request.sid]
     })
 
@@ -135,7 +134,6 @@ def handle_sync_request(data):
     join_room(room_id)
     room = rooms_state[room_id]
 
-    # Update client info from request if available
     client_info = room['clients'].get(request.sid, {
         "sid": request.sid,
         "device_name": data.get('device_name', f"Device_{request.sid[:4]}"),
@@ -147,7 +145,6 @@ def handle_sync_request(data):
         "comment": ''
     })
 
-    # Sync requested values
     if 'current_q' in data:
         client_info['current_q'] = data['current_q']
     if 'continues' in data:
@@ -163,6 +160,7 @@ def handle_sync_request(data):
         "start_time": room['start_time'],
         "duration": room['duration'],
         "escape_code": room['escape_code'],
+        "camera_enabled": room['camera_enabled'],
         "client_state": client_info
     })
 
@@ -210,6 +208,39 @@ def handle_submit_answer(data):
         "commentary": q_data['commentary'],
         "maid_scold": q_data['maid_scold']
     })
+
+# --- Remote Camera Streaming Relay Handlers ---
+
+@socketio.on('camera_frame')
+def handle_camera_frame(data):
+    room_id = data.get('room_id')
+    frame_data = data.get('frame')
+    if room_id in rooms_state and rooms_state[room_id]['camera_enabled']:
+        socketio.emit('admin_camera_stream', {
+            "room_id": room_id,
+            "frame": frame_data
+        })
+
+@socketio.on('admin_toggle_camera')
+def handle_admin_toggle_camera(data):
+    room_id = data.get('room_id')
+    enabled = data.get('enabled', False)
+
+    if room_id == 'ALL':
+        for r_id, room in rooms_state.items():
+            room['camera_enabled'] = enabled
+            socketio.emit('toggle_camera', {
+                "room_id": r_id,
+                "enabled": enabled
+            }, room=r_id)
+    elif room_id in rooms_state:
+        rooms_state[room_id]['camera_enabled'] = enabled
+        socketio.emit('toggle_camera', {
+            "room_id": room_id,
+            "enabled": enabled
+        }, room=room_id)
+
+    socketio.emit('admin_state_update', rooms_state)
 
 # --- Admin Handlers ---
 

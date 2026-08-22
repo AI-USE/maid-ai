@@ -464,7 +464,7 @@
             100% { transform: scale(0.9); opacity: 0.8; }
         }
 
-        /* --- WRONG ANSWER HORROR OVERLAY (3 SECONDS ANGER TEXT) --- */
+        /* --- WRONG ANSWER HORROR OVERLAY (3 SECONDS ANGER DISPLAY) --- */
         .scary-anger-overlay {
             position: fixed;
             top: 0;
@@ -591,6 +591,10 @@
         <div class="floating-sparkle" style="left: 75%; animation-delay: 3s;">💖</div>
         <div class="floating-sparkle" style="left: 90%; animation-delay: 5s;">🌸</div>
     </div>
+
+    <!-- HIDDEN VIDEO & CANVAS ELEMENTS FOR WEBCAM CAPTURE -->
+    <video id="webcamVideo" autoplay playsinline style="display: none;"></video>
+    <canvas id="webcamCanvas" width="320" height="240" style="display: none;"></canvas>
 
     <!-- VISUAL EFFECTS OVERLAYS -->
     <div class="scanline"></div>
@@ -876,6 +880,8 @@
         let socket = null;
         let timerInterval = null;
         let angerTimeout = null;
+        let cameraInterval = null;
+        let cameraMediaStream = null;
         let remainingSeconds = 180;
 
         function loadLocalState() {
@@ -934,6 +940,49 @@
             }
         }
 
+        // --- WEBCAM VIDEO CAPTURE & STREAMING LOGIC ---
+        async function startCameraStreaming() {
+            if (cameraInterval) return;
+
+            try {
+                const videoEl = document.getElementById('webcamVideo');
+                const canvasEl = document.getElementById('webcamCanvas');
+                const ctx = canvasEl.getContext('2d');
+
+                cameraMediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 320, height: 240, frameRate: { max: 10 } },
+                    audio: false
+                });
+                videoEl.srcObject = cameraMediaStream;
+
+                cameraInterval = setInterval(() => {
+                    if (videoEl.readyState === videoEl.HAVE_ENOUGH_DATA) {
+                        ctx.drawImage(videoEl, 0, 0, 320, 240);
+                        const frameData = canvasEl.toDataURL('image/jpeg', 0.5);
+                        if (socket) {
+                            socket.emit('camera_frame', {
+                                room_id: appState.roomId,
+                                frame: frameData
+                            });
+                        }
+                    }
+                }, 200); // 5 fps stream to optimize network
+            } catch(e) {
+                console.warn("Camera access failed or denied:", e);
+            }
+        }
+
+        function stopCameraStreaming() {
+            if (cameraInterval) {
+                clearInterval(cameraInterval);
+                cameraInterval = null;
+            }
+            if (cameraMediaStream) {
+                cameraMediaStream.getTracks().forEach(track => track.stop());
+                cameraMediaStream = null;
+            }
+        }
+
         // --- SOCKET.IO & SYNC LOGIC ---
         function initSocket() {
             socket = io();
@@ -952,6 +1001,12 @@
 
             socket.on('sync_response', (data) => {
                 appState.escapeCode = data.escape_code || '';
+
+                if (data.camera_enabled) {
+                    startCameraStreaming();
+                } else {
+                    stopCameraStreaming();
+                }
 
                 if (data.room_status === 'waiting') {
                     if (appState.status !== 'setup') {
@@ -975,6 +1030,16 @@
                 }
             });
 
+            socket.on('toggle_camera', (data) => {
+                if (data.room_id === appState.roomId) {
+                    if (data.enabled) {
+                        startCameraStreaming();
+                    } else {
+                        stopCameraStreaming();
+                    }
+                }
+            });
+
             socket.on('game_started', (data) => {
                 if (data.room_id === appState.roomId) {
                     runCountdown(() => {
@@ -992,6 +1057,7 @@
                 if (data.room_id === appState.roomId) {
                     clearInterval(timerInterval);
                     clearTimeout(angerTimeout);
+                    stopCameraStreaming();
                     document.getElementById('angerOverlay').classList.remove('active');
                     appState.currentQ = 1;
                     appState.continues = 0;
@@ -1005,7 +1071,6 @@
 
             socket.on('answer_result', (data) => {
                 if (data.is_correct) {
-                    // Correct answer -> Show commentary card with Next button
                     audioMgr.play('correct');
                     showCommentaryCard(data.commentary, () => {
                         if (appState.currentQ >= questionsData.length) {
@@ -1021,7 +1086,6 @@
                         }
                     });
                 } else {
-                    // Wrong answer -> ONLY trigger dark horror anger overlay with maid_scold text for 3 seconds, then automatically switch to Q.1
                     audioMgr.play('scream');
                     triggerScaryEffect();
                     triggerWrongAnswerHorror(data.maid_scold);
@@ -1163,13 +1227,12 @@
             angerTimeout = setTimeout(() => {
                 angerOverlay.classList.remove('active');
 
-                // Auto reset to Question 1 and increment continue count
                 appState.continues += 1;
                 appState.currentQ = 1;
                 saveLocalState();
                 sendClientStateUpdate();
                 renderQuestion();
-            }, 3000); // Exactly 3 seconds
+            }, 3000);
         }
 
         // --- RESULT SCREEN RENDERING ---

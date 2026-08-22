@@ -79,14 +79,14 @@
 
         .header-controls {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
         }
 
         .btn-moe-admin {
             background: linear-gradient(135deg, var(--main-pink), var(--hot-pink));
             border: 2px solid #ffffff;
             color: #fff;
-            padding: 0.65rem 1.5rem;
+            padding: 0.65rem 1.2rem;
             font-family: var(--font-kawaii);
             font-size: 0.95rem;
             font-weight: 900;
@@ -94,6 +94,9 @@
             border-radius: 25px;
             transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(255, 26, 117, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
         }
 
         .btn-moe-admin:hover {
@@ -104,6 +107,10 @@
 
         .btn-moe-danger {
             background: linear-gradient(135deg, #ff0044, #990026);
+        }
+
+        .btn-moe-camera {
+            background: linear-gradient(135deg, #00b33c, #006622);
         }
 
         .rooms-grid {
@@ -155,8 +162,38 @@
         .pill-playing { background: var(--hot-pink); color: #fff; }
         .pill-finished { background: var(--cyber-red); color: #fff; }
 
+        .video-box {
+            width: 100%;
+            height: 180px;
+            background: #000;
+            border: 2px solid var(--main-pink);
+            border-radius: 12px;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .video-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-off-placeholder {
+            color: #ff99cc;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .client-info-list {
-            min-height: 120px;
+            min-height: 100px;
             margin-bottom: 1rem;
         }
 
@@ -194,10 +231,16 @@
 
         .card-actions {
             display: flex;
+            flex-direction: column;
             gap: 0.5rem;
         }
 
-        .card-actions button {
+        .action-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-row button {
             flex: 1;
             font-size: 0.85rem;
             padding: 0.5rem;
@@ -211,6 +254,7 @@
     <header>
         <h1><span>🎀 ☕ 💖</span> 萌え萌えメイドカフェ - カウンターモニター</h1>
         <div class="header-controls">
+            <button class="btn-moe-admin btn-moe-camera" id="btnToggleCameraAll">📷 カメラ一括ON/OFF</button>
             <button class="btn-moe-admin" id="btnStartAll">⚡ 一括スタート (10部屋)</button>
             <button class="btn-moe-admin btn-moe-danger" id="btnResetAll">⚠️ 一括強制リセット</button>
         </div>
@@ -223,6 +267,7 @@
     <script>
         const socket = io();
         let roomsData = {};
+        let allCameraEnabled = false;
 
         socket.on('connect', () => {
             console.log("Connected to Admin SocketIO Server. SID:", socket.id);
@@ -231,6 +276,17 @@
         socket.on('admin_state_update', (data) => {
             roomsData = data;
             renderGrid();
+        });
+
+        socket.on('admin_camera_stream', (data) => {
+            const roomId = data.room_id;
+            const imgEl = document.getElementById(`camera_feed_${roomId}`);
+            if (imgEl) {
+                imgEl.src = data.frame;
+                imgEl.style.display = 'block';
+                const placeholder = document.getElementById(`camera_off_${roomId}`);
+                if (placeholder) placeholder.style.display = 'none';
+            }
         });
 
         function renderGrid() {
@@ -245,6 +301,7 @@
                     start_time: null,
                     duration: 180,
                     escape_code: '------',
+                    camera_enabled: false,
                     clients: {}
                 };
 
@@ -294,6 +351,14 @@
                         <span class="status-pill ${statusPillClass}">${room.status}</span>
                     </div>
 
+                    <div class="video-box">
+                        <img id="camera_feed_${roomId}" style="display: ${room.camera_enabled ? 'block' : 'none'};" alt="Live Stream">
+                        <div class="camera-off-placeholder" id="camera_off_${roomId}" style="display: ${room.camera_enabled ? 'none' : 'flex'};">
+                            <span>📹 カメラOFF</span>
+                            <span style="font-size: 0.75rem; color: #cc88aa;">(通信軽量化中)</span>
+                        </div>
+                    </div>
+
                     <div class="room-timer" id="timer_${roomId}">${timerText}</div>
 
                     <div style="font-size: 0.85rem; color: var(--hot-pink); margin-bottom: 0.6rem; font-family: var(--font-mono); font-weight: bold;">
@@ -305,13 +370,25 @@
                     </div>
 
                     <div class="card-actions">
-                        <button class="btn-moe-admin" onclick="startRoom('${roomId}')" ${room.status === 'playing' ? 'disabled' : ''}>スタート</button>
-                        <button class="btn-moe-admin btn-moe-danger" onclick="resetRoom('${roomId}')">強制リセット</button>
+                        <button class="btn-moe-admin btn-moe-camera" onclick="toggleCamera('${roomId}', ${!room.camera_enabled})" style="width: 100%;">
+                            ${room.camera_enabled ? '📷 カメラ切断 (軽量化)' : '📷 遠隔カメラ起動 (LIVE)'}
+                        </button>
+                        <div class="action-row">
+                            <button class="btn-moe-admin" onclick="startRoom('${roomId}')" ${room.status === 'playing' ? 'disabled' : ''}>スタート</button>
+                            <button class="btn-moe-admin btn-moe-danger" onclick="resetRoom('${roomId}')">強制リセット</button>
+                        </div>
                     </div>
                 `;
 
                 grid.appendChild(card);
             }
+        }
+
+        function toggleCamera(roomId, enable) {
+            socket.emit('admin_toggle_camera', {
+                room_id: roomId,
+                enabled: enable
+            });
         }
 
         function startRoom(roomId) {
@@ -323,6 +400,14 @@
                 socket.emit('admin_reset_room', { room_id: roomId });
             }
         }
+
+        document.getElementById('btnToggleCameraAll').onclick = () => {
+            allCameraEnabled = !allCameraEnabled;
+            socket.emit('admin_toggle_camera', {
+                room_id: 'ALL',
+                enabled: allCameraEnabled
+            });
+        };
 
         document.getElementById('btnStartAll').onclick = () => {
             if (confirm('全10部屋を一括スタートしますか？')) {
