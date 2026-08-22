@@ -33,18 +33,17 @@ class YandereAppTestCase(unittest.TestCase):
     def test_admin_route(self):
         res = self.app.get('/admin')
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'MONITOR MATRIX', res.data)
+        self.assertIn(b'MATRIX MONITOR', res.data)
 
     def test_index_route(self):
         res = self.app.get('/')
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'Shippori Mincho', res.data)
+        self.assertIn(b'Zen Maru Gothic', res.data)
 
     def test_socketio_connection(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
 
-        # Test join room
         client.emit('join_room_req', {
             'room_id': 'Room_1',
             'device_name': 'TestUser',

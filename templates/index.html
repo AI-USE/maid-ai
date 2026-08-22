@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>狂愛ヤンデレメイドの館 - 病みかわいいホラー解読</title>
-    <!-- Google Fonts: Shippori Mincho & Zen Maru Gothic -->
+    <title>狂愛ヤンデレメイドの館 - 病みかわいい×溺愛謎解き</title>
+    <!-- Google Fonts: Zen Maru Gothic & Shippori Mincho -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Maru+Gothic:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Shippori+Mincho:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <!-- Socket.IO CDN -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         :root {
-            --bg-black: #080305;
-            --yami-pink: #ff66aa;
-            --pastel-pink: #ffb3d9;
-            --dark-crimson: #8b0000;
-            --blood-red: #ff0033;
-            --neon-red: #ff1a1a;
-            --text-main: #fce4ec;
-            --font-serif: 'Shippori Mincho', serif;
+            --bg-dark-cute: #0d0208;
+            --pastel-pink: #ff99cc;
+            --hot-pink: #ff3385;
+            --soft-pink: #ffe6f2;
+            --yami-purple: #993366;
+            --blood-red: #ff0044;
+            --text-cute: #fff0f5;
             --font-kawaii: 'Zen Maru Gothic', sans-serif;
+            --font-serif: 'Shippori Mincho', serif;
             --font-mono: 'Share Tech Mono', monospace;
         }
 
@@ -32,9 +32,13 @@
         }
 
         body {
-            background-color: var(--bg-black);
-            color: var(--text-main);
-            font-family: var(--font-serif);
+            background-color: var(--bg-dark-cute);
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(255, 153, 204, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 20% 20%, rgba(255, 51, 133, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(153, 51, 102, 0.2) 0%, transparent 50%);
+            color: var(--text-cute);
+            font-family: var(--font-kawaii);
             min-height: 100vh;
             overflow-x: hidden;
             display: flex;
@@ -43,7 +47,33 @@
             position: relative;
         }
 
-        /* --- VISUAL EFFECTS: Vignette, Scanlines, Blood Drips, Screen Shake --- */
+        /* --- FLOATING CUTE HEARTS ANIMATION BACKGROUND --- */
+        .heart-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .floating-heart {
+            position: absolute;
+            font-size: 1.5rem;
+            color: rgba(255, 153, 204, 0.25);
+            animation: float-up 10s linear infinite;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(105vh) scale(0.8) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+        }
+
+        /* --- VISUAL EFFECTS: Vignette, Scanlines, Blood Drips --- */
         .vignette {
             position: fixed;
             top: 0;
@@ -52,7 +82,7 @@
             height: 100vh;
             pointer-events: none;
             z-index: 100;
-            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.92), inset 0 0 50px var(--dark-crimson);
+            box-shadow: inset 0 0 100px rgba(13, 2, 8, 0.85), inset 0 0 40px var(--hot-pink);
             transition: box-shadow 0.5s ease;
         }
 
@@ -68,11 +98,11 @@
                 to bottom,
                 rgba(255,255,255,0),
                 rgba(255,255,255,0) 50%,
-                rgba(0, 0, 0, 0.35) 50%,
-                rgba(0, 0, 0, 0.35)
+                rgba(0, 0, 0, 0.25) 50%,
+                rgba(0, 0, 0, 0.25)
             );
             background-size: 100% 4px;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .blood-overlay {
@@ -84,7 +114,7 @@
             pointer-events: none;
             z-index: 102;
             opacity: 0;
-            box-shadow: inset 0 0 100px var(--blood-red), inset 0 0 180px var(--dark-crimson);
+            box-shadow: inset 0 0 90px var(--blood-red), inset 0 0 150px var(--hot-pink);
             transition: opacity 0.3s ease;
         }
 
@@ -93,8 +123,8 @@
         }
 
         @keyframes pulse-blood {
-            0% { opacity: 0.35; transform: scale(1); }
-            100% { opacity: 0.9; transform: scale(1.03); }
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.85; transform: scale(1.02); }
         }
 
         .flash-scary {
@@ -115,19 +145,19 @@
         }
 
         @keyframes glitch-shake {
-            0% { transform: translate(0, 0) rotate(0deg); filter: invert(0); }
-            20% { transform: translate(-8px, 6px) rotate(-3deg); filter: invert(0.8); }
-            40% { transform: translate(8px, -6px) rotate(3deg); filter: invert(0); }
-            60% { transform: translate(-5px, -5px) rotate(-1deg); filter: invert(1); }
-            80% { transform: translate(6px, 4px) rotate(2deg); filter: invert(0); }
-            100% { transform: translate(0, 0) rotate(0deg); filter: invert(0); }
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-7px, 5px) rotate(-2deg); filter: invert(0.6); }
+            40% { transform: translate(7px, -5px) rotate(2deg); filter: invert(0); }
+            60% { transform: translate(-4px, -4px) rotate(-1deg); filter: invert(0.8); }
+            80% { transform: translate(5px, 4px) rotate(2deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
         }
 
-        /* --- LAYOUT & SCREEN CONTAINERS --- */
+        /* --- LAYOUT CONTAINERS --- */
         .app-container {
             width: 100%;
-            max-width: 880px;
-            min-height: 600px;
+            max-width: 860px;
+            min-height: 580px;
             padding: 2rem;
             position: relative;
             z-index: 10;
@@ -140,59 +170,60 @@
             justify-content: center;
             text-align: center;
             width: 100%;
-            animation: glitch-appear 0.15s cubic-bezier(0.1, 0.9, 0.2, 1);
+            animation: pop-appear 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .screen.active {
             display: flex;
         }
 
-        @keyframes glitch-appear {
-            0% { opacity: 0; transform: scale(0.97) skewX(2deg); }
-            100% { opacity: 1; transform: scale(1) skewX(0); }
+        @keyframes pop-appear {
+            0% { opacity: 0; transform: scale(0.92); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
-        /* --- TYPOGRAPHY & YAMI-KAWAII HEADERS --- */
+        /* --- CUTE HEADERS & BADGES --- */
         h1 {
-            color: var(--yami-pink);
-            font-size: 2.5rem;
-            font-weight: 800;
-            text-shadow: 0 0 15px var(--yami-pink), 0 0 30px var(--dark-crimson);
+            color: var(--pastel-pink);
+            font-size: 2.6rem;
+            font-weight: 900;
+            text-shadow: 0 0 15px var(--hot-pink), 0 0 30px var(--yami-purple);
             letter-spacing: 2px;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
         }
 
         h1 span.heart {
-            color: var(--blood-red);
-            animation: heartbeat 0.8s infinite alternate;
+            color: var(--hot-pink);
+            animation: heartbeat 0.7s infinite alternate;
             display: inline-block;
         }
 
         @keyframes heartbeat {
             0% { transform: scale(1); }
-            100% { transform: scale(1.3); }
+            100% { transform: scale(1.35); }
         }
 
         h2 {
             font-size: 1.8rem;
-            color: var(--yami-pink);
-            text-shadow: 0 0 10px var(--dark-crimson);
+            color: var(--pastel-pink);
+            text-shadow: 0 0 12px var(--hot-pink);
             margin-bottom: 1rem;
         }
 
-        .yami-badge {
-            background: linear-gradient(135deg, rgba(255, 102, 170, 0.2), rgba(139, 0, 0, 0.6));
-            border: 1px solid var(--yami-pink);
-            color: var(--pastel-pink);
-            padding: 0.3rem 1rem;
-            border-radius: 20px;
+        .cute-badge {
+            background: linear-gradient(135deg, rgba(255, 153, 204, 0.25), rgba(255, 51, 133, 0.4));
+            border: 2px solid var(--pastel-pink);
+            color: #fff;
+            padding: 0.4rem 1.2rem;
+            border-radius: 25px;
             font-size: 0.95rem;
-            font-family: var(--font-kawaii);
+            font-weight: bold;
             display: inline-block;
             margin-bottom: 1rem;
+            box-shadow: 0 0 15px rgba(255, 153, 204, 0.3);
         }
 
-        /* --- BUTTONS & INPUTS WITH KAWAII GLITCH EFFECTS --- */
+        /* --- CUTE INPUTS & BUTTONS --- */
         .input-group {
             margin: 1.2rem 0;
             display: flex;
@@ -203,60 +234,60 @@
         }
 
         label {
-            font-size: 1.1rem;
-            color: var(--yami-pink);
+            font-size: 1.15rem;
+            color: var(--pastel-pink);
             text-align: left;
-            font-family: var(--font-kawaii);
+            font-weight: bold;
         }
 
         select, input[type="text"] {
-            background-color: #12050a;
-            border: 2px solid var(--dark-crimson);
-            color: var(--text-main);
-            padding: 0.8rem 1rem;
+            background-color: rgba(26, 5, 18, 0.9);
+            border: 2px solid var(--pastel-pink);
+            color: var(--text-cute);
+            padding: 0.85rem 1.2rem;
             font-size: 1.1rem;
-            font-family: var(--font-serif);
+            font-family: var(--font-kawaii);
+            font-weight: bold;
             outline: none;
-            border-radius: 8px;
+            border-radius: 16px;
             transition: all 0.3s;
+            box-shadow: inset 0 0 10px rgba(255, 153, 204, 0.15);
         }
 
         select:focus, input[type="text"]:focus {
-            border-color: var(--yami-pink);
-            box-shadow: 0 0 15px var(--yami-pink);
+            border-color: var(--hot-pink);
+            box-shadow: 0 0 20px var(--hot-pink);
         }
 
-        .btn-yami {
-            background: linear-gradient(135deg, var(--dark-crimson), #400010);
-            color: var(--pastel-pink);
-            border: 2px solid var(--yami-pink);
-            padding: 0.9rem 2.2rem;
+        .btn-cute {
+            background: linear-gradient(135deg, var(--hot-pink), var(--yami-purple));
+            color: #ffffff;
+            border: 3px solid var(--pastel-pink);
+            padding: 0.95rem 2.5rem;
             font-size: 1.25rem;
             font-family: var(--font-kawaii);
-            font-weight: 700;
+            font-weight: 900;
             cursor: pointer;
-            position: relative;
-            border-radius: 30px;
-            letter-spacing: 2px;
-            box-shadow: 0 0 20px rgba(255, 102, 170, 0.4);
-            transition: all 0.2s ease;
+            border-radius: 35px;
+            letter-spacing: 1px;
+            box-shadow: 0 0 25px rgba(255, 51, 133, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
         }
 
-        .btn-yami:hover {
-            background: var(--yami-pink);
+        .btn-cute:hover {
+            background: linear-gradient(135deg, var(--pastel-pink), var(--hot-pink));
             color: #000;
-            box-shadow: 0 0 30px var(--yami-pink);
-            transform: translateY(-2px);
-            animation: btn-glitch 0.2s infinite;
+            box-shadow: 0 0 35px var(--pastel-pink);
+            transform: scale(1.05) translateY(-3px);
         }
 
-        @keyframes btn-glitch {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(-2px, 2px); }
-            50% { transform: translate(2px, -2px); }
-            75% { transform: translate(-1px, 1px); }
-            100% { transform: translate(0, 0); }
+        .btn-cute:active {
+            transform: scale(0.98);
         }
 
         /* --- GAME HEADER / TIMER --- */
@@ -265,135 +296,152 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px dashed var(--yami-pink);
+            border-bottom: 3px dotted var(--pastel-pink);
             padding-bottom: 0.8rem;
             margin-bottom: 1.5rem;
         }
 
         .room-badge {
             font-family: var(--font-mono);
-            background: var(--dark-crimson);
-            border: 1px solid var(--yami-pink);
+            background: linear-gradient(135deg, var(--yami-purple), #33001a);
+            border: 2px solid var(--pastel-pink);
             color: var(--pastel-pink);
-            padding: 0.4rem 0.8rem;
-            border-radius: 12px;
-            font-size: 0.9rem;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
         }
 
         .timer-box {
             font-family: var(--font-mono);
-            font-size: 2.2rem;
-            color: var(--blood-red);
-            text-shadow: 0 0 12px var(--blood-red);
-            background: rgba(0,0,0,0.85);
-            padding: 0.3rem 1.2rem;
-            border: 2px solid var(--dark-crimson);
-            border-radius: 8px;
+            font-size: 2.3rem;
+            color: var(--hot-pink);
+            text-shadow: 0 0 15px var(--hot-pink);
+            background: rgba(15, 2, 8, 0.9);
+            padding: 0.3rem 1.3rem;
+            border: 2px solid var(--pastel-pink);
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(255, 51, 133, 0.3);
         }
 
         .stats-box {
             font-size: 1rem;
-            color: #ddd;
-            font-family: var(--font-kawaii);
+            color: #fff;
+            font-weight: bold;
         }
 
         .stats-box span {
-            color: var(--yami-pink);
-            font-weight: bold;
+            color: var(--pastel-pink);
+            font-size: 1.2rem;
+            text-shadow: 0 0 8px var(--pastel-pink);
         }
 
         /* --- QUESTION & OPTIONS CARD --- */
         .question-card {
-            background-color: rgba(18, 5, 12, 0.92);
-            border: 2px solid var(--yami-pink);
-            box-shadow: 0 0 35px rgba(255, 102, 170, 0.25);
-            padding: 2rem;
-            border-radius: 12px;
+            background: rgba(22, 4, 15, 0.92);
+            border: 3px solid var(--pastel-pink);
+            box-shadow: 0 0 40px rgba(255, 153, 204, 0.3), inset 0 0 20px rgba(255, 51, 133, 0.15);
+            padding: 2.2rem;
+            border-radius: 24px;
             width: 100%;
             text-align: left;
             margin-bottom: 1.5rem;
             position: relative;
         }
 
+        .question-card::before {
+            content: '🎀 💖 🎀';
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-dark-cute);
+            padding: 0 12px;
+            font-size: 1rem;
+            color: var(--pastel-pink);
+        }
+
         .question-title {
-            font-size: 1.35rem;
-            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            margin-bottom: 1.6rem;
             color: #ffffff;
             line-height: 1.7;
-            border-left: 4px solid var(--yami-pink);
+            border-left: 5px solid var(--hot-pink);
             padding-left: 1rem;
+            font-weight: 700;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 0.9rem;
+            gap: 1rem;
             width: 100%;
         }
 
         .option-btn {
-            background: #1a0812;
-            border: 1px solid #552238;
-            color: var(--text-main);
-            padding: 1rem 1.2rem;
+            background: rgba(35, 8, 24, 0.85);
+            border: 2px solid rgba(255, 153, 204, 0.4);
+            color: var(--text-cute);
+            padding: 1rem 1.3rem;
             text-align: left;
-            font-size: 1.1rem;
-            font-family: var(--font-serif);
+            font-size: 1.15rem;
+            font-family: var(--font-kawaii);
+            font-weight: 700;
             cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s;
+            border-radius: 18px;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             align-items: center;
         }
 
         .option-btn:hover {
-            border-color: var(--yami-pink);
-            background-color: #330d22;
+            border-color: var(--pastel-pink);
+            background: linear-gradient(135deg, rgba(255, 51, 133, 0.4), rgba(153, 51, 102, 0.6));
             color: #fff;
-            box-shadow: 0 0 15px rgba(255, 102, 170, 0.5);
-            transform: translateX(6px);
+            box-shadow: 0 0 20px rgba(255, 153, 204, 0.6);
+            transform: translateX(8px) scale(1.01);
         }
 
         .option-key {
             font-family: var(--font-mono);
             font-weight: bold;
-            color: var(--yami-pink);
+            color: var(--pastel-pink);
             margin-right: 1rem;
-            font-size: 1.2rem;
-            background: rgba(139, 0, 0, 0.4);
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
+            font-size: 1.25rem;
+            background: rgba(255, 51, 133, 0.3);
+            padding: 0.25rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid var(--pastel-pink);
         }
 
-        /* --- COMMENTARY / EXPLANATION MODAL (CORRECT & WRONG BEFORE PUNISHMENT) --- */
+        /* --- COMMENTARY / EXPLANATION MODAL --- */
         .commentary-card {
-            background: rgba(15, 2, 8, 0.95);
-            border: 2px solid var(--yami-pink);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1rem;
+            background: rgba(25, 3, 16, 0.96);
+            border: 3px solid var(--pastel-pink);
+            border-radius: 20px;
+            padding: 1.8rem;
+            margin-top: 1.2rem;
             text-align: left;
-            box-shadow: 0 0 30px rgba(255, 102, 170, 0.3);
+            box-shadow: 0 0 40px rgba(255, 153, 204, 0.4);
             display: none;
-            animation: glitch-appear 0.2s linear;
+            animation: pop-appear 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .commentary-header {
-            font-family: var(--font-kawaii);
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--yami-pink);
-            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--pastel-pink);
+            margin-bottom: 0.9rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
         .commentary-body {
-            font-size: 1.15rem;
+            font-size: 1.18rem;
             line-height: 1.7;
             color: #fff;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.4rem;
         }
 
         /* --- COUNTDOWN OVERLAY --- */
@@ -403,7 +451,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(5, 0, 3, 0.96);
+            background: rgba(10, 1, 6, 0.96);
             z-index: 500;
             display: none;
             flex-direction: column;
@@ -414,8 +462,8 @@
         .countdown-number {
             font-size: 10rem;
             font-family: var(--font-mono);
-            color: var(--yami-pink);
-            text-shadow: 0 0 35px var(--yami-pink);
+            color: var(--pastel-pink);
+            text-shadow: 0 0 40px var(--hot-pink);
             animation: cd-pop 0.9s infinite;
         }
 
@@ -425,14 +473,14 @@
             100% { transform: scale(0.9); opacity: 0.8; }
         }
 
-        /* --- SCARY MAID PUNISHMENT MODAL (お仕置き演出) --- */
+        /* --- SCARY MAID PUNISHMENT MODAL --- */
         .modal-backdrop {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(10, 0, 0, 0.96);
+            background: rgba(15, 0, 5, 0.96);
             z-index: 600;
             display: none;
             justify-content: center;
@@ -442,23 +490,23 @@
 
         .modal-backdrop.active {
             display: flex;
-            animation: glitch-appear 0.1s linear;
+            animation: pop-appear 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .punishment-content {
-            background-color: #120003;
-            border: 3px solid var(--blood-red);
-            box-shadow: 0 0 70px var(--blood-red);
+            background: radial-gradient(circle, #200008 0%, #0d0003 100%);
+            border: 4px solid var(--blood-red);
+            box-shadow: 0 0 80px var(--blood-red), inset 0 0 30px var(--hot-pink);
             padding: 2.5rem;
             max-width: 620px;
             width: 100%;
             text-align: center;
-            border-radius: 12px;
+            border-radius: 28px;
             position: relative;
         }
 
         .scary-avatar {
-            font-size: 4rem;
+            font-size: 4.2rem;
             margin-bottom: 1rem;
             animation: scary-shake 0.1s infinite;
         }
@@ -474,11 +522,10 @@
 
         .punishment-title {
             color: var(--blood-red);
-            font-size: 2rem;
-            font-family: var(--font-kawaii);
-            font-weight: 800;
+            font-size: 2.1rem;
+            font-weight: 900;
             margin-bottom: 1rem;
-            text-shadow: 0 0 20px var(--blood-red);
+            text-shadow: 0 0 25px var(--blood-red);
         }
 
         .scold-text {
@@ -486,69 +533,68 @@
             color: #fff;
             font-weight: bold;
             margin-bottom: 1.5rem;
-            line-height: 1.6;
-            background: rgba(139, 0, 0, 0.3);
-            padding: 1rem;
-            border-left: 4px solid var(--blood-red);
-            border-radius: 4px;
+            line-height: 1.7;
+            background: rgba(255, 0, 68, 0.2);
+            padding: 1.2rem;
+            border-left: 5px solid var(--blood-red);
+            border-radius: 12px;
         }
 
         .auto-timer-badge {
             font-family: var(--font-mono);
             font-size: 1.4rem;
-            color: var(--yami-pink);
+            color: var(--pastel-pink);
             background: #000;
-            border: 1px solid var(--blood-red);
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
+            border: 2px solid var(--blood-red);
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
             display: inline-block;
             margin-top: 1rem;
-            box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+            box-shadow: 0 0 20px rgba(255, 0, 68, 0.5);
         }
 
         /* --- RESULT SCREEN --- */
         .result-card {
-            background: rgba(18, 2, 10, 0.94);
-            border: 3px solid var(--yami-pink);
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 0 50px rgba(255, 102, 170, 0.4);
+            background: rgba(25, 4, 18, 0.95);
+            border: 4px solid var(--pastel-pink);
+            padding: 2.8rem;
+            border-radius: 28px;
+            box-shadow: 0 0 60px rgba(255, 153, 204, 0.5);
             width: 100%;
-            max-width: 650px;
+            max-width: 660px;
         }
 
         .title-badge {
-            font-size: 2.1rem;
-            color: var(--yami-pink);
-            text-shadow: 0 0 20px var(--yami-pink);
-            margin: 1rem 0;
-            font-weight: 800;
-            font-family: var(--font-kawaii);
+            font-size: 2.2rem;
+            color: var(--pastel-pink);
+            text-shadow: 0 0 25px var(--hot-pink);
+            margin: 1.2rem 0;
+            font-weight: 900;
         }
 
         .comment-box {
             font-size: 1.2rem;
             color: #eee;
-            background: rgba(0,0,0,0.7);
-            padding: 1.5rem;
-            border-left: 4px solid var(--yami-pink);
+            background: rgba(0,0,0,0.75);
+            padding: 1.6rem;
+            border-left: 5px solid var(--pastel-pink);
             margin: 1.5rem 0;
             text-align: left;
             line-height: 1.8;
-            border-radius: 6px;
+            border-radius: 16px;
         }
 
         .escape-code-box {
             background: #000;
-            border: 2px dashed var(--yami-pink);
-            padding: 1rem;
+            border: 3px dashed var(--pastel-pink);
+            padding: 1.2rem;
             margin: 1.5rem 0;
             font-family: var(--font-mono);
-            font-size: 1.8rem;
+            font-size: 2rem;
             color: #00ff66;
-            text-shadow: 0 0 12px #00ff66;
-            letter-spacing: 5px;
-            border-radius: 8px;
+            text-shadow: 0 0 15px #00ff66;
+            letter-spacing: 6px;
+            border-radius: 16px;
         }
 
         .pulse-text {
@@ -563,6 +609,16 @@
 </head>
 <body>
 
+    <!-- FLOATING HEARTS BACKGROUND -->
+    <div class="heart-bg" id="heartBg">
+        <div class="floating-heart" style="left: 10%; animation-delay: 0s;">💖</div>
+        <div class="floating-heart" style="left: 25%; animation-delay: 2s;">🎀</div>
+        <div class="floating-heart" style="left: 40%; animation-delay: 4s;">💕</div>
+        <div class="floating-heart" style="left: 60%; animation-delay: 1s;">✨</div>
+        <div class="floating-heart" style="left: 75%; animation-delay: 3s;">💖</div>
+        <div class="floating-heart" style="left: 90%; animation-delay: 5s;">🩸</div>
+    </div>
+
     <!-- VISUAL EFFECTS OVERLAYS -->
     <div class="vignette"></div>
     <div class="scanline"></div>
@@ -571,7 +627,7 @@
 
     <!-- COUNTDOWN OVERLAY -->
     <div class="countdown-overlay" id="countdownOverlay">
-        <div style="font-size: 1.8rem; color: var(--pastel-pink); font-family: var(--font-kawaii); margin-bottom: 1rem;">
+        <div style="font-size: 1.8rem; color: var(--pastel-pink); margin-bottom: 1rem;">
             🎀 狂愛の館の扉が開くよ… 💖
         </div>
         <div class="countdown-number" id="countdownNum">3</div>
@@ -583,7 +639,7 @@
             <div class="scary-avatar">🔪🩸🖤😠💉</div>
             <div class="punishment-title">💢 メ イ ド の お 仕 置 き 💢</div>
             <div class="scold-text" id="scoldText">「は？どこ見てるの？私のこと全然見てないじゃない！！」</div>
-            <p style="color: var(--pastel-pink); font-size: 1rem; font-family: var(--font-kawaii); margin-bottom: 1rem;">
+            <p style="color: var(--pastel-pink); font-size: 1.05rem; margin-bottom: 1rem;">
                 愛の足りないあなたにお仕置きだよ… 最初からやり直しね♡
             </p>
             <div class="auto-timer-badge">
@@ -597,9 +653,9 @@
 
         <!-- SCREEN 1: ROOM SETUP & AUDIO UNLOCK -->
         <div class="screen active" id="screenSetup">
-            <div class="yami-badge">💖 狂愛・溺愛・病みかわいい謎解き 🎀</div>
+            <div class="cute-badge">🎀 狂愛・溺愛・病みかわいい謎解き 💖</div>
             <h1>ヤンデレメイドの館 <span class="heart">♥</span></h1>
-            <p style="color: var(--pastel-pink); line-height: 1.8;">
+            <p style="color: var(--pastel-pink); line-height: 1.8; margin-bottom: 1.5rem; font-size: 1.15rem;">
                 あなたは私の愛から逃げられると思ってるの…？<br>
                 10の問いに正しく答えて、私の重すぎる愛を証明してみてね♡
             </p>
@@ -625,19 +681,19 @@
                 <input type="text" id="inputDeviceName" placeholder="例: 愛しのあなた" maxlength="15">
             </div>
 
-            <button class="btn-yami" id="btnEnter">館に入る (音声を有効化) 💖</button>
-            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">※クリックでオーディオ権限を取得します</p>
+            <button class="btn-cute" id="btnEnter"><span>館に入る (音声を有効化)</span> 💖</button>
+            <p style="color: #aa7799; font-size: 0.88rem; margin-top: 1.2rem;">※クリックでオーディオ権限を取得します</p>
         </div>
 
         <!-- SCREEN 2: WAITING FOR ADMIN START -->
         <div class="screen" id="screenWait">
-            <div class="yami-badge">🔒 WAITING ROOM</div>
+            <div class="cute-badge">🔒 WAITING ROOM</div>
             <h2 class="pulse-text">愛しのあなたの到着を待っています… 💖</h2>
-            <p style="color: var(--pastel-pink);">親機（サーバー）からのスタート合図でゲームが始まります。</p>
-            <div class="room-badge" id="waitRoomBadge" style="font-size: 1.2rem; padding: 0.8rem 1.8rem; margin-top: 1rem;">
+            <p style="color: var(--pastel-pink); font-size: 1.1rem;">親機（サーバー）からのスタート合図でゲームが始まります。</p>
+            <div class="room-badge" id="waitRoomBadge" style="font-size: 1.2rem; padding: 0.8rem 2rem; margin-top: 1.2rem;">
                 ROOM: -
             </div>
-            <p style="color: #777; font-size: 0.85rem; margin-top: 2rem;">※ブラウザを再読み込みしても、状態は自動で復元されます。</p>
+            <p style="color: #aa7799; font-size: 0.88rem; margin-top: 2rem;">※ブラウザを再読み込みしても、状態は自動で復元されます。</p>
         </div>
 
         <!-- SCREEN 3: GAME PLAY -->
@@ -645,7 +701,7 @@
             <div class="game-header">
                 <div>
                     <span class="room-badge" id="gameRoomBadge">Room_1</span>
-                    <span id="gamePlayerName" style="margin-left: 0.8rem; font-weight: bold; color: var(--yami-pink); font-family: var(--font-kawaii);">-</span>
+                    <span id="gamePlayerName" style="margin-left: 0.8rem; font-weight: bold; color: var(--pastel-pink);">-</span>
                 </div>
                 <div class="timer-box" id="timerDisplay">03:00</div>
                 <div class="stats-box">
@@ -654,7 +710,7 @@
             </div>
 
             <div class="question-card">
-                <div style="font-family: var(--font-mono); color: var(--yami-pink); font-size: 1.1rem; margin-bottom: 0.5rem;" id="questionNumTag">
+                <div style="font-family: var(--font-mono); color: var(--pastel-pink); font-size: 1.15rem; margin-bottom: 0.5rem;" id="questionNumTag">
                     QUESTION 01 / 10
                 </div>
                 <div class="question-title" id="questionText">
@@ -673,7 +729,7 @@
                 <div class="commentary-body" id="commentaryText">
                     -
                 </div>
-                <button class="btn-yami" id="btnNextQuestion" style="margin-top: 0; width: 100%;">次へ進む 💖</button>
+                <button class="btn-cute" id="btnNextQuestion" style="margin-top: 0; width: 100%;"><span>次へ進む</span> 💖</button>
             </div>
         </div>
 
@@ -682,24 +738,24 @@
             <div class="result-card">
                 <h2 id="resultHeader">脱出結果</h2>
 
-                <div style="color: var(--pastel-pink); font-size: 1.1rem; font-family: var(--font-kawaii);">獲得称号</div>
+                <div style="color: var(--pastel-pink); font-size: 1.15rem;">獲得称号</div>
                 <div class="title-badge" id="resultTitle">共犯者（ヤンデレマスター）</div>
 
                 <div class="comment-box">
-                    <div style="color: var(--yami-pink); font-weight: bold; margin-bottom: 0.5rem; font-family: var(--font-kawaii);">
+                    <div style="color: var(--pastel-pink); font-weight: bold; margin-bottom: 0.5rem;">
                         メイドからのささやき:
                     </div>
                     <p id="resultComment" style="margin-bottom: 0;">「……」</p>
                 </div>
 
                 <div id="escapeCodeContainer" style="display: none;">
-                    <div style="color: var(--pastel-pink); font-size: 1rem; font-family: var(--font-kawaii);">館の脱出認証コード:</div>
+                    <div style="color: var(--pastel-pink); font-size: 1rem;">館の脱出認証コード:</div>
                     <div class="escape-code-box" id="escapeCodeDisplay">XXXXXX</div>
                 </div>
 
                 <div style="display: flex; justify-content: space-around; margin-top: 1.5rem; color: #ccc; font-family: var(--font-mono);">
-                    <div>到達問題: <span id="resReachedQ" style="color: var(--yami-pink); font-weight: bold;">10</span> / 10</div>
-                    <div>お仕置き回数: <span id="resContinues" style="color: var(--yami-pink); font-weight: bold;">0</span> 回</div>
+                    <div>到達問題: <span id="resReachedQ" style="color: var(--pastel-pink); font-weight: bold;">10</span> / 10</div>
+                    <div>お仕置き回数: <span id="resContinues" style="color: var(--pastel-pink); font-weight: bold;">0</span> 回</div>
                 </div>
             </div>
         </div>
@@ -811,7 +867,7 @@
                     osc1.stop(now + 0.7);
                     osc2.stop(now + 0.7);
                 } else if (key === 'correct') {
-                    const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    const freqs = [523.25, 659.25, 783.99, 1046.50];
                     freqs.forEach((f, idx) => {
                         const osc = this.ctx.createOscillator();
                         const gain = this.ctx.createGain();
@@ -831,14 +887,14 @@
         const audioMgr = new HorrorAudioManager();
 
         // --- APP STATE & LOCALSTORAGE MANAGER ---
-        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v2';
+        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v3';
 
         let appState = {
             roomId: 'Room_1',
             deviceName: '愛しのあなた',
             currentQ: 1,
             continues: 0,
-            status: 'setup', // setup, waiting, playing, cleared, gameover
+            status: 'setup',
             clearTime: null,
             title: '',
             comment: '',
@@ -979,7 +1035,6 @@
 
             socket.on('answer_result', (data) => {
                 if (data.is_correct) {
-                    // Correct Answer Flow -> Play sound, show commentary, enable Next button immediately
                     audioMgr.play('correct');
                     showCommentaryCard(true, data.commentary, () => {
                         if (appState.currentQ >= questionsData.length) {
@@ -995,12 +1050,10 @@
                         }
                     });
                 } else {
-                    // Wrong Answer Flow -> First show commentary/explanation, then trigger scary maid punishment modal
                     audioMgr.play('scream');
                     triggerScaryEffect();
 
                     showCommentaryCard(false, data.commentary, () => {
-                        // Launch Scary Maid Punishment Modal with 5-second automatic countdown reset to Q1
                         triggerScaryMaidPunishment(data.maid_scold);
                     });
                 }
@@ -1073,10 +1126,8 @@
         function renderQuestion() {
             if (!questionsData || questionsData.length === 0) return;
 
-            // Hide commentary card
             document.getElementById('commentaryCard').style.display = 'none';
 
-            // Enable options container
             const optionsContainer = document.getElementById('optionsContainer');
             optionsContainer.style.pointerEvents = 'auto';
 
@@ -1101,7 +1152,6 @@
         }
 
         function handleSelectOption(questionId, selectedOptId) {
-            // Disable options during response evaluation
             document.getElementById('optionsContainer').style.pointerEvents = 'none';
 
             if (socket) {
@@ -1121,12 +1171,12 @@
 
             if (isCorrect) {
                 headerEl.innerHTML = '💖 <b>正 解 ！ メイドからのメッセージ:</b>';
-                headerEl.style.color = 'var(--yami-pink)';
-                nextBtn.innerText = '次へ進む 💖';
+                headerEl.style.color = 'var(--pastel-pink)';
+                nextBtn.innerHTML = '<span>次へ進む</span> 💖';
             } else {
                 headerEl.innerHTML = '💢 <b>不 正 解 … メイドの解説:</b>';
                 headerEl.style.color = 'var(--blood-red)';
-                nextBtn.innerText = 'お仕置きを受ける… 🔪';
+                nextBtn.innerHTML = '<span>お仕置きを受ける…</span> 🔪';
             }
 
             bodyEl.innerText = commentaryText;
@@ -1161,7 +1211,6 @@
                     clearInterval(punishmentTimerInterval);
                     modal.classList.remove('active');
 
-                    // Reset to Question 1 and increment continue count
                     appState.continues += 1;
                     appState.currentQ = 1;
                     saveLocalState();
