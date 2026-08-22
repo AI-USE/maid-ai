@@ -950,7 +950,7 @@
                 const ctx = canvasEl.getContext('2d');
 
                 cameraMediaStream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 320, height: 240, frameRate: { max: 10 } },
+                    video: { facingMode: 'user', width: 320, height: 240, frameRate: { max: 10 } },
                     audio: false
                 });
                 videoEl.srcObject = cameraMediaStream;
