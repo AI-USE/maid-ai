@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>問題作成・編集ツール - 萌え萌えヤンデレ謎解き</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-bright: #fff0f5;
+            --main-pink: #ff66aa;
+            --hot-pink: #ff1a75;
+            --soft-pink: #ffe6f0;
+            --cyber-green: #00cc44;
+            --border-pink: #ffb3d9;
+            --text-dark: #4a2c3a;
+            --font-kawaii: 'Zen Maru Gothic', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-bright);
+            color: var(--text-dark);
+            font-family: var(--font-kawaii);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px dashed var(--main-pink);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: var(--hot-pink);
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 900;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--main-pink), var(--hot-pink));
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 0.75rem 1.6rem;
+            font-family: var(--font-kawaii);
+            font-size: 1rem;
+            font-weight: 900;
+            cursor: pointer;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(255, 26, 117, 0.3);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 26, 117, 0.5);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, #00cc44, #008022);
+        }
+
+        .btn-secondary {
+            background: #ffffff;
+            color: var(--hot-pink);
+            border: 2px solid var(--main-pink);
+        }
+
+        .questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .question-item-card {
+            background: #ffffff;
+            border: 3px solid var(--border-pink);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 6px 20px rgba(255, 102, 170, 0.15);
+            position: relative;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            border-bottom: 2px dashed var(--border-pink);
+            padding-bottom: 0.6rem;
+        }
+
+        .q-number {
+            font-size: 1.3rem;
+            color: var(--hot-pink);
+            font-weight: 900;
+            font-family: var(--font-mono);
+        }
+
+        .btn-delete-q {
+            background: #ff0044;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 900;
+            color: var(--hot-pink);
+            font-size: 1rem;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border-pink);
+            border-radius: 14px;
+            font-family: var(--font-kawaii);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+            background: #fff8fa;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            border-color: var(--hot-pink);
+            box-shadow: 0 0 10px rgba(255, 26, 117, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .options-builder {
+            background: #fff0f5;
+            padding: 1.2rem;
+            border-radius: 16px;
+            margin-bottom: 1.2rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .opt-key-badge {
+            background: var(--main-pink);
+            color: #fff;
+            padding: 0.4rem 0.8rem;
+            border-radius: 10px;
+            font-family: var(--font-mono);
+            font-weight: bold;
+        }
+
+        .btn-opt-del {
+            background: #e60039;
+            color: #fff;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .status-msg {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #000;
+            color: #00ff66;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            font-weight: bold;
+            display: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><span>📝 🎀 💖</span> 問題作成・編集ビジュアルツール</h1>
+        <div class="header-actions">
+            <a href="/admin" class="btn-action btn-secondary" style="text-decoration: none;">← 管理モニターへ戻る</a>
+            <button class="btn-action btn-secondary" onclick="exportJSON()">📥 JSONダウンロード</button>
+            <button class="btn-action btn-green" onclick="saveToServer()">💾 サーバーに保存</button>
+        </div>
+    </header>
+
+    <div class="questions-list" id="questionsContainer">
+        <!-- Question Cards Rendered Dynamically -->
+    </div>
+
+    <div style="text-align: center; margin: 2rem 0;">
+        <button class="btn-action" onclick="addNewQuestion()">➕ 新しい問題を追加する</button>
+    </div>
+
+    <div class="status-msg" id="statusMsg"></div>
+
+    <script>
+        let questionsData = [];
+
+        async function loadQuestions() {
+            try {
+                const res = await fetch('/api/questions');
+                questionsData = await res.json();
+                renderQuestions();
+            } catch(e) {
+                console.error("Failed to load questions:", e);
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            questionsData.forEach((q, qIndex) => {
+                const card = document.createElement('div');
+                card.className = 'question-item-card';
+
+                let optionsHtml = '';
+                q.options.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <div class="option-row">
+                            <span class="opt-key-badge">${opt.id}</span>
+                            <input type="text" value="${escapeHtml(opt.text)}" onchange="updateOptionText(${qIndex}, ${optIndex}, this.value)" placeholder="選択肢テキスト">
+                            ${q.options.length > 2 ? `<button class="btn-opt-del" onclick="deleteOption(${qIndex}, ${optIndex})">✕</button>` : ''}
+                        </div>
+                    `;
+                });
+
+                let answerOptionsHtml = '';
+                q.options.forEach(opt => {
+                    answerOptionsHtml += `<option value="${opt.id}" ${q.answer === opt.id ? 'selected' : ''}>選択肢 ${opt.id}</option>`;
+                });
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="q-number">QUESTION ${String(qIndex + 1).padStart(2, '0')}</span>
+                        <div>
+                            ${qIndex > 0 ? `<button class="btn-action btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="moveQuestion(${qIndex}, -1)">▲ 上へ</button>` : ''}
+                            ${qIndex < questionsData.length - 1 ? `<button class="btn-action btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="moveQuestion(${qIndex}, 1)">▼ 下へ</button>` : ''}
+                            <button class="btn-delete-q" onclick="deleteQuestion(${qIndex})">🗑️ 削除</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>問題文</label>
+                        <textarea onchange="updateField(${qIndex}, 'question', this.value)" placeholder="問題文を入力してください">${escapeHtml(q.question)}</textarea>
+                    </div>
+
+                    <div class="options-builder">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                            <label style="margin: 0;">選択肢設定</label>
+                            ${q.options.length < 6 ? `<button class="btn-action btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="addOption(${qIndex})">＋ 選択肢を追加</button>` : ''}
+                        </div>
+                        ${optionsHtml}
+                    </div>
+
+                    <div class="form-group">
+                        <label>正解選択肢</label>
+                        <select onchange="updateField(${qIndex}, 'answer', this.value)">
+                            ${answerOptionsHtml}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>正解時の解説・コメント</label>
+                        <textarea onchange="updateField(${qIndex}, 'commentary', this.value)" placeholder="正解時のメイドからのメッセージ">${escapeHtml(q.commentary || '')}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>不正解時の叱責セリフ (お仕置き演出用)</label>
+                        <input type="text" value="${escapeHtml(q.maid_scold || '')}" onchange="updateField(${qIndex}, 'maid_scold', this.value)" placeholder="例: は？どこ見てるの？私のこと全然見てないじゃない！！">
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function updateField(qIndex, field, value) {
+            questionsData[qIndex][field] = value;
+        }
+
+        function updateOptionText(qIndex, optIndex, value) {
+            questionsData[qIndex].options[optIndex].text = value;
+        }
+
+        function addOption(qIndex) {
+            const q = questionsData[qIndex];
+            const nextKey = String.fromCharCode(65 + q.options.length); // A, B, C, D...
+            q.options.push({ id: nextKey, text: `新しい選択肢 ${nextKey}` });
+            renderQuestions();
+        }
+
+        function deleteOption(qIndex, optIndex) {
+            const q = questionsData[qIndex];
+            q.options.splice(optIndex, 1);
+            // Re-index option IDs (A, B, C...)
+            q.options.forEach((opt, idx) => {
+                opt.id = String.fromCharCode(65 + idx);
+            });
+            if (!q.options.some(o => o.id === q.answer)) {
+                q.answer = q.options[0].id;
+            }
+            renderQuestions();
+        }
+
+        function addNewQuestion() {
+            const newId = questionsData.length + 1;
+            questionsData.push({
+                id: newId,
+                question: "新しい質問文を入力してください♡",
+                options: [
+                    { id: "A", text: "選択肢 A" },
+                    { id: "B", text: "選択肢 B" }
+                ],
+                answer: "A",
+                commentary: "正解コメントを入力してください♡",
+                maid_scold: "間違いよ！集中しなさい！！"
+            });
+            renderQuestions();
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function deleteQuestion(qIndex) {
+            if (confirm(`QUESTION ${qIndex + 1} を削除しますか？`)) {
+                questionsData.splice(qIndex, 1);
+                renderQuestions();
+            }
+        }
+
+        function moveQuestion(qIndex, direction) {
+            const targetIndex = qIndex + direction;
+            if (targetIndex >= 0 && targetIndex < questionsData.length) {
+                const temp = questionsData[qIndex];
+                questionsData[qIndex] = questionsData[targetIndex];
+                questionsData[targetIndex] = temp;
+                renderQuestions();
+            }
+        }
+
+        async function saveToServer() {
+            try {
+                const res = await fetch('/api/questions/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(questionsData)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showStatus("✨ サーバー (questions.json) に保存しました！");
+                    loadQuestions();
+                } else {
+                    alert("保存エラー: " + result.message);
+                }
+            } catch(e) {
+                alert("通信エラーが発生しました: " + e);
+            }
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(questionsData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "questions.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function showStatus(msg) {
+            const el = document.getElementById('statusMsg');
+            el.innerText = msg;
+            el.style.display = 'inline-block';
+            setTimeout(() => { el.style.display = 'none'; }, 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', loadQuestions);
+    </script>
+</body>
+</html>

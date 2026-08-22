@@ -75,9 +75,35 @@ def index():
 def admin():
     return render_template('admin.html')
 
+@app.route('/builder')
+def builder():
+    return render_template('builder.html')
+
 @app.route('/api/questions')
 def get_questions():
     return jsonify(sanitize_questions_for_client(QUESTIONS))
+
+@app.route('/api/questions/save', methods=['POST'])
+def save_questions():
+    global QUESTIONS
+    try:
+        new_questions = request.json
+        if not isinstance(new_questions, list):
+            return jsonify({"success": False, "message": "Data must be a list of questions"}), 400
+
+        # Validate structure
+        for idx, q in enumerate(new_questions, start=1):
+            q["id"] = idx
+            if "question" not in q or "options" not in q or "answer" not in q:
+                return jsonify({"success": False, "message": f"Question {idx} is missing required fields"}), 400
+
+        with open('questions.json', 'w', encoding='utf-8') as f:
+            json.dump(new_questions, f, ensure_ascii=False, indent=2)
+
+        QUESTIONS = new_questions
+        return jsonify({"success": True, "message": "Questions saved successfully!", "count": len(new_questions)})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/titles')
 def get_titles():
