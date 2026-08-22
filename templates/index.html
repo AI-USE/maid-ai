@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ヤンデレメイドの館からの脱出 - Local Escape Game</title>
+    <!-- Google Fonts: Shippori Mincho -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- Socket.IO CDN -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        :root {
+            --bg-black: #0a0a0a;
+            --dark-crimson: #8b0000;
+            --neon-red: #ff1a1a;
+            --blood-red: #cc0000;
+            --text-main: #e0e0e0;
+            --dim-gray: #333333;
+            --noise-gray: #1a1a1a;
+            --font-serif: 'Shippori Mincho', serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-main);
+            font-family: var(--font-serif);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* --- VISUAL EFFECTS: Vignette, Scanlines, Blood Pulse, Noise --- */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9), inset 0 0 40px var(--dark-crimson);
+            transition: box-shadow 0.5s ease;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 101;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.3) 50%,
+                rgba(0, 0, 0, 0.3)
+            );
+            background-size: 100% 4px;
+            opacity: 0.6;
+        }
+
+        .blood-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 102;
+            opacity: 0;
+            box-shadow: inset 0 0 80px var(--neon-red), inset 0 0 150px var(--dark-crimson);
+            transition: opacity 0.3s ease;
+        }
+
+        .blood-overlay.pulse {
+            animation: pulse-blood 1s infinite alternate;
+        }
+
+        @keyframes pulse-blood {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.85; transform: scale(1.02); }
+        }
+
+        .flash-red {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--neon-red);
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.05s linear;
+        }
+
+        /* --- LAYOUT & SCREEN CONTAINERS --- */
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            animation: glitch-appear 0.15s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes glitch-appear {
+            0% { opacity: 0; transform: scale(0.98) skewX(2deg); filter: invert(1); }
+            50% { opacity: 0.8; transform: scale(1.01) skewX(-2deg); }
+            100% { opacity: 1; transform: scale(1) skewX(0); filter: invert(0); }
+        }
+
+        /* --- TYPOGRAPHY & HEADERS --- */
+        h1, h2, h3 {
+            color: var(--neon-red);
+            text-shadow: 0 0 10px var(--dark-crimson), 0 0 20px #000;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .sub-text {
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        /* --- BUTTONS & INPUTS WITH GLITCH EFFECTS --- */
+        .input-group {
+            margin: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        label {
+            font-size: 1.1rem;
+            color: var(--neon-red);
+            text-align: left;
+        }
+
+        select, input[type="text"] {
+            background-color: #111;
+            border: 2px solid var(--dark-crimson);
+            color: var(--text-main);
+            padding: 0.8rem 1rem;
+            font-size: 1.1rem;
+            font-family: var(--font-serif);
+            outline: none;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 10px var(--neon-red);
+        }
+
+        .btn-horror {
+            background-color: var(--dark-crimson);
+            color: #fff;
+            border: 1px solid var(--neon-red);
+            padding: 0.9rem 2rem;
+            font-size: 1.2rem;
+            font-family: var(--font-serif);
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 2px;
+            box-shadow: 0 0 15px rgba(139, 0, 0, 0.6);
+            transition: all 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-horror:hover {
+            background-color: var(--neon-red);
+            color: #000;
+            box-shadow: 0 0 25px var(--neon-red);
+            transform: translateY(-2px);
+            animation: btn-glitch 0.2s infinite;
+        }
+
+        @keyframes btn-glitch {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+            60% { transform: translate(-1px, -1px); }
+            80% { transform: translate(2px, 1px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* --- GAME HEADER / TIMER --- */
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--dark-crimson);
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .room-badge {
+            font-family: var(--font-mono);
+            background-color: var(--dark-crimson);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .timer-box {
+            font-family: var(--font-mono);
+            font-size: 2.2rem;
+            color: var(--neon-red);
+            text-shadow: 0 0 10px var(--neon-red);
+            background: rgba(0,0,0,0.8);
+            padding: 0.3rem 1rem;
+            border: 1px solid var(--dark-crimson);
+            border-radius: 4px;
+        }
+
+        .stats-box {
+            font-size: 1rem;
+            color: #aaa;
+        }
+
+        .stats-box span {
+            color: var(--neon-red);
+            font-weight: bold;
+        }
+
+        /* --- QUESTION & OPTIONS --- */
+        .question-card {
+            background-color: rgba(15, 15, 15, 0.9);
+            border: 2px solid var(--dark-crimson);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            padding: 2rem;
+            border-radius: 8px;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-title {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
+            line-height: 1.6;
+            border-left: 4px solid var(--neon-red);
+            padding-left: 1rem;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .option-btn {
+            background: #141414;
+            border: 1px solid #444;
+            color: #ddd;
+            padding: 1rem 1.2rem;
+            text-align: left;
+            font-size: 1.1rem;
+            font-family: var(--font-serif);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover {
+            border-color: var(--neon-red);
+            background-color: #220505;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 26, 26, 0.4);
+            transform: translateX(5px);
+        }
+
+        .option-key {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            color: var(--neon-red);
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            background: rgba(139, 0, 0, 0.3);
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+        }
+
+        /* --- COUNTDOWN OVERLAY --- */
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.95);
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .countdown-number {
+            font-size: 10rem;
+            font-family: var(--font-mono);
+            color: var(--neon-red);
+            text-shadow: 0 0 30px var(--neon-red);
+            animation: cd-pop 0.9s infinite;
+        }
+
+        @keyframes cd-pop {
+            0% { transform: scale(1.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
+
+        /* --- MAID SCOLD MODAL --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 0, 0, 0.92);
+            z-index: 600;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            animation: glitch-appear 0.1s linear;
+        }
+
+        .modal-content {
+            background-color: #110303;
+            border: 3px solid var(--neon-red);
+            box-shadow: 0 0 50px var(--neon-red);
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .maid-avatar {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(-3px, 3px) rotate(-2deg); }
+            50% { transform: translate(3px, -3px) rotate(2deg); }
+            75% { transform: translate(-2px, -2px) rotate(-1deg); }
+            100% { transform: translate(0,0) rotate(0deg); }
+        }
+
+        .scold-text {
+            font-size: 1.4rem;
+            color: var(--neon-red);
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* --- RESULT SCREEN --- */
+        .result-card {
+            background: rgba(15, 0, 0, 0.9);
+            border: 3px solid var(--dark-crimson);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 0 40px rgba(139, 0, 0, 0.8);
+            width: 100%;
+            max-width: 650px;
+        }
+
+        .title-badge {
+            font-size: 2rem;
+            color: var(--neon-red);
+            text-shadow: 0 0 15px var(--neon-red);
+            margin: 1rem 0;
+            font-weight: 800;
+        }
+
+        .comment-box {
+            font-size: 1.2rem;
+            color: #eee;
+            background: rgba(0,0,0,0.6);
+            padding: 1.5rem;
+            border-left: 3px solid var(--neon-red);
+            margin: 1.5rem 0;
+            text-align: left;
+            line-height: 1.8;
+        }
+
+        .escape-code-box {
+            background: #000;
+            border: 2px dashed var(--neon-red);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            font-family: var(--font-mono);
+            font-size: 1.8rem;
+            color: #00ff66;
+            text-shadow: 0 0 10px #00ff66;
+            letter-spacing: 5px;
+        }
+
+        .pulse-text {
+            animation: pulse-txt 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-txt {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CSS VISUAL EFFECTS -->
+    <div class="vignette"></div>
+    <div class="scanline"></div>
+    <div class="blood-overlay" id="bloodOverlay"></div>
+    <div class="flash-red" id="flashRed"></div>
+
+    <!-- COUNTDOWN OVERLAY -->
+    <div class="countdown-overlay" id="countdownOverlay">
+        <div style="font-size: 1.8rem; color: #aaa; margin-bottom: 1rem;">閉ざされた扉が開く…</div>
+        <div class="countdown-number" id="countdownNum">3</div>
+    </div>
+
+    <!-- MAID SCOLD MODAL -->
+    <div class="modal-backdrop" id="scoldModal">
+        <div class="modal-content">
+            <div class="maid-avatar">🩸🖤🔪</div>
+            <div class="scold-text" id="scoldText">「は？どこ見てるの？私のこと全然見てないじゃない！！」</div>
+            <p style="color: #bbb; font-size: 0.95rem; margin-bottom: 1.5rem;">メイドの怒りにより、最初からやり直さなければなりません…</p>
+            <button class="btn-horror" id="btnRestartQ1">最初からやり直す (Q.1へ)</button>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="app-container">
+
+        <!-- SCREEN 1: ROOM SETUP & AUDIO UNLOCK -->
+        <div class="screen active" id="screenSetup">
+            <h1>ヤンデレメイドの館</h1>
+            <p style="color: #ccc;">あなたは館に閉じ込められました。<br>メイドの機嫌を損ねずに10の問いに答え、無事脱出しなさい。</p>
+
+            <div class="input-group">
+                <label for="selectRoom">部屋番号 (端末指定)</label>
+                <select id="selectRoom">
+                    <option value="Room_1">第 1 部屋 (Room_1)</option>
+                    <option value="Room_2">第 2 部屋 (Room_2)</option>
+                    <option value="Room_3">第 3 部屋 (Room_3)</option>
+                    <option value="Room_4">第 4 部屋 (Room_4)</option>
+                    <option value="Room_5">第 5 部屋 (Room_5)</option>
+                    <option value="Room_6">第 6 部屋 (Room_6)</option>
+                    <option value="Room_7">第 7 部屋 (Room_7)</option>
+                    <option value="Room_8">第 8 部屋 (Room_8)</option>
+                    <option value="Room_9">第 9 部屋 (Room_9)</option>
+                    <option value="Room_10">第 10 部屋 (Room_10)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="inputDeviceName">プレイヤー名 / 端末名</label>
+                <input type="text" id="inputDeviceName" placeholder="例: 挑戦者A" maxlength="15">
+            </div>
+
+            <button class="btn-horror" id="btnEnter">館に入る (音声を有効化)</button>
+            <p class="sub-text" style="margin-top: 1rem;">※クリックでオーディオ権限を取得します</p>
+        </div>
+
+        <!-- SCREEN 2: WAITING FOR ADMIN START -->
+        <div class="screen" id="screenWait">
+            <h2 class="pulse-text">主（サーバー）の開始指示を待っています…</h2>
+            <p>音響の準備が完了しました。静寂の中に鼓動が響いています。</p>
+            <div class="room-badge" id="waitRoomBadge" style="font-size: 1.2rem; padding: 0.8rem 1.5rem; margin-top: 1rem;">
+                ROOM: -
+            </div>
+            <p class="sub-text" style="margin-top: 2rem;">※ブラウザを閉じたり更新しても、自動的に復元されます。</p>
+        </div>
+
+        <!-- SCREEN 3: GAME PLAY -->
+        <div class="screen" id="screenGame">
+            <div class="game-header">
+                <div>
+                    <span class="room-badge" id="gameRoomBadge">Room_1</span>
+                    <span id="gamePlayerName" style="margin-left: 0.8rem; font-weight: bold; color: #ccc;">-</span>
+                </div>
+                <div class="timer-box" id="timerDisplay">03:00</div>
+                <div class="stats-box">
+                    Mistakes: <span id="continueDisplay">0</span>
+                </div>
+            </div>
+
+            <div class="question-card">
+                <div style="font-family: var(--font-mono); color: var(--neon-red); font-size: 1.1rem; margin-bottom: 0.5rem;" id="questionNumTag">
+                    QUESTION 01 / 10
+                </div>
+                <div class="question-title" id="questionText">
+                    読み込み中…
+                </div>
+                <div class="options-grid" id="optionsContainer">
+                    <!-- Option buttons dynamically inserted -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: RESULT SCREEN -->
+        <div class="screen" id="screenResult">
+            <div class="result-card">
+                <h2 id="resultHeader">脱出結果</h2>
+
+                <div style="color: #aaa; font-size: 1.1rem;">獲得称号</div>
+                <div class="title-badge" id="resultTitle">共犯者（ヤンデレマスター）</div>
+
+                <div class="comment-box">
+                    <div style="color: var(--neon-red); font-weight: bold; margin-bottom: 0.5rem;">メイドからのメッセージ:</div>
+                    <p id="resultComment" style="margin-bottom: 0;">「……」</p>
+                </div>
+
+                <div id="escapeCodeContainer" style="display: none;">
+                    <div style="color: #aaa; font-size: 1rem;">館の脱出認証コード:</div>
+                    <div class="escape-code-box" id="escapeCodeDisplay">XXXXXX</div>
+                </div>
+
+                <div style="display: flex; justify-content: space-around; margin-top: 1.5rem; color: #ccc; font-family: var(--font-mono);">
+                    <div>到達問題: <span id="resReachedQ" style="color: var(--neon-red); font-weight: bold;">10</span> / 10</div>
+                    <div>コンティニュー回数: <span id="resContinues" style="color: var(--neon-red); font-weight: bold;">0</span> 回</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- AUDIO SYSTEM INTERFACE -->
+    <script>
+        // --- AUDIO MANAGER WITH WEB AUDIO API SYNTH FALLBACK ---
+        class HorrorAudioManager {
+            constructor() {
+                this.ctx = null;
+                this.audioCache = {};
+                this.audioFiles = {
+                    heartbeat: '/static/audio/heartbeat_slow.mp3',
+                    countdown: '/static/audio/countdown.mp3',
+                    bgmHorror: '/static/audio/bgm_horror.mp3',
+                    bgmPanic: '/static/audio/bgm_panic.mp3',
+                    scream: '/static/audio/scream.mp3',
+                    correct: '/static/audio/correct.mp3'
+                };
+                this.currentBgm = null;
+                this.isPanic = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            // Play HTML5 audio file or synthesize if file missing/error
+            play(soundKey, loop = false) {
+                this.init();
+
+                // Stop previous BGM if playing bgm
+                if (soundKey.startsWith('bgm')) {
+                    this.stopBgm();
+                }
+
+                const audio = new Audio(this.audioFiles[soundKey]);
+                audio.loop = loop;
+
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        if (soundKey.startsWith('bgm') || soundKey === 'heartbeat') {
+                            this.currentBgm = audio;
+                        }
+                    }).catch(err => {
+                        console.warn(`Audio file ${this.audioFiles[soundKey]} not found or blocked. Playing synth fallback.`);
+                        this.playSynthFallback(soundKey);
+                    });
+                }
+            }
+
+            stopBgm() {
+                if (this.currentBgm) {
+                    this.currentBgm.pause();
+                    this.currentBgm.currentTime = 0;
+                    this.currentBgm = null;
+                }
+            }
+
+            playSynthFallback(key) {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                if (key === 'heartbeat') {
+                    // Low pulsing pulse sound
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(60, now);
+                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (key === 'countdown') {
+                    // High metallic ping
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (key === 'scream') {
+                    // Harsh noise / dissonant saw wave scream
+                    const osc1 = this.ctx.createOscillator();
+                    const osc2 = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc1.type = 'sawtooth';
+                    osc2.type = 'sawtooth';
+                    osc1.frequency.setValueAtTime(800, now);
+                    osc1.frequency.linearRampToValueAtTime(200, now + 0.6);
+                    osc2.frequency.setValueAtTime(830, now);
+                    osc2.frequency.linearRampToValueAtTime(190, now + 0.6);
+                    gain.gain.setValueAtTime(0.6, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                    osc1.connect(gain);
+                    osc2.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.6);
+                    osc2.stop(now + 0.6);
+                } else if (key === 'correct') {
+                    // Pleasant arpeggio chime
+                    const freqs = [523.25, 659.25, 783.99]; // C5, E5, G5
+                    freqs.forEach((f, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, now + idx * 0.08);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.08);
+                        osc.stop(now + idx * 0.08 + 0.3);
+                    });
+                }
+            }
+        }
+
+        const audioMgr = new HorrorAudioManager();
+
+        // --- APP STATE & LOCALSTORAGE MANAGER ---
+        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v1';
+
+        let appState = {
+            roomId: 'Room_1',
+            deviceName: 'Challenger',
+            currentQ: 1,
+            continues: 0,
+            status: 'setup', // setup, waiting, playing, cleared, gameover
+            clearTime: null,
+            title: '',
+            comment: '',
+            escapeCode: ''
+        };
+
+        let questionsData = [];
+        let titlesData = null;
+        let socket = null;
+        let timerInterval = null;
+        let remainingSeconds = 180;
+
+        function loadLocalState() {
+            const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState = { ...appState, ...parsed };
+                } catch(e) {
+                    console.error("Failed to parse local storage", e);
+                }
+            }
+        }
+
+        function saveLocalState() {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
+        }
+
+        // --- SCREEN ROUTER ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(screenId);
+            if (target) {
+                target.classList.add('active');
+            }
+        }
+
+        // --- FLASH & VIGNETTE EFFECTS ---
+        function triggerRedFlash() {
+            const flash = document.getElementById('flashRed');
+            flash.style.opacity = '0.95';
+            setTimeout(() => { flash.style.opacity = '0'; }, 150);
+        }
+
+        function updateBloodOverlay(seconds) {
+            const overlay = document.getElementById('bloodOverlay');
+            if (seconds <= 30 && appState.status === 'playing') {
+                overlay.classList.add('pulse');
+                if (!audioMgr.isPanic) {
+                    audioMgr.isPanic = true;
+                    audioMgr.play('bgmPanic', true);
+                }
+            } else {
+                overlay.classList.remove('pulse');
+                audioMgr.isPanic = false;
+            }
+        }
+
+        // --- SOCKET.IO & SYNC LOGIC ---
+        function initSocket() {
+            socket = io();
+
+            socket.on('connect', () => {
+                console.log("Connected to server via SocketIO. SID:", socket.id);
+                if (appState.status !== 'setup') {
+                    socket.emit('sync_request', {
+                        room_id: appState.roomId,
+                        device_name: appState.deviceName,
+                        current_q: appState.currentQ,
+                        continues: appState.continues,
+                        status: appState.status
+                    });
+                }
+            });
+
+            socket.on('sync_response', (data) => {
+                console.log("Sync response received:", data);
+                appState.escapeCode = data.escape_code || '';
+
+                if (data.room_status === 'waiting') {
+                    if (appState.status !== 'setup') {
+                        appState.status = 'waiting';
+                        saveLocalState();
+                        showScreen('screenWait');
+                        document.getElementById('waitRoomBadge').innerText = `ROOM: ${appState.roomId}`;
+                        audioMgr.play('heartbeat', true);
+                    }
+                } else if (data.room_status === 'playing') {
+                    appState.status = 'playing';
+                    saveLocalState();
+                    showScreen('screenGame');
+                    startLocalTimer(data.start_time, data.duration);
+                    renderQuestion();
+                } else if (data.room_status === 'finished') {
+                    if (appState.status !== 'cleared' && appState.status !== 'gameover') {
+                        appState.status = 'gameover';
+                    }
+                    renderResultScreen();
+                }
+            });
+
+            socket.on('game_started', (data) => {
+                if (data.room_id === appState.roomId) {
+                    runCountdown(() => {
+                        appState.status = 'playing';
+                        saveLocalState();
+                        showScreen('screenGame');
+                        startLocalTimer(data.start_time, data.duration);
+                        renderQuestion();
+                        audioMgr.play('bgmHorror', true);
+                    });
+                }
+            });
+
+            socket.on('room_reset', (data) => {
+                if (data.room_id === appState.roomId) {
+                    clearInterval(timerInterval);
+                    appState.currentQ = 1;
+                    appState.continues = 0;
+                    appState.status = 'waiting';
+                    saveLocalState();
+                    showScreen('screenWait');
+                    audioMgr.play('heartbeat', true);
+                    updateBloodOverlay(180);
+                }
+            });
+
+            socket.on('answer_result', (data) => {
+                if (data.is_correct) {
+                    audioMgr.play('correct');
+                    if (appState.currentQ >= questionsData.length) {
+                        // All 10 questions completed -> Clear!
+                        appState.status = 'cleared';
+                        saveLocalState();
+                        sendClientStateUpdate();
+                        renderResultScreen();
+                    } else {
+                        appState.currentQ += 1;
+                        saveLocalState();
+                        sendClientStateUpdate();
+                        renderQuestion();
+                    }
+                } else {
+                    // Wrong answer -> Red flash, scream, maid scold dialog
+                    triggerRedFlash();
+                    audioMgr.play('scream');
+                    showMaidScoldModal(data.maid_scold);
+                }
+            });
+        }
+
+        function sendClientStateUpdate() {
+            if (socket) {
+                socket.emit('client_update', {
+                    room_id: appState.roomId,
+                    current_q: appState.currentQ,
+                    continues: appState.continues,
+                    status: appState.status
+                });
+            }
+        }
+
+        // --- TIMER LOGIC ---
+        function startLocalTimer(startTime, duration) {
+            clearInterval(timerInterval);
+
+            function updateTimer() {
+                const now = Date.now() / 1000;
+                const elapsed = now - startTime;
+                remainingSeconds = Math.max(0, Math.floor(duration - elapsed));
+
+                const mins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+                const secs = String(remainingSeconds % 60).padStart(2, '0');
+                document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+
+                updateBloodOverlay(remainingSeconds);
+
+                if (remainingSeconds <= 0 && appState.status === 'playing') {
+                    clearInterval(timerInterval);
+                    appState.status = 'gameover';
+                    saveLocalState();
+                    sendClientStateUpdate();
+                    renderResultScreen();
+                }
+            }
+
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // --- COUNTDOWN ANIMATION ---
+        function runCountdown(callback) {
+            const overlay = document.getElementById('countdownOverlay');
+            const numEl = document.getElementById('countdownNum');
+            overlay.style.display = 'flex';
+
+            let count = 3;
+            numEl.innerText = count;
+            audioMgr.play('countdown');
+
+            const cdInt = setInterval(() => {
+                count -= 1;
+                if (count > 0) {
+                    numEl.innerText = count;
+                    audioMgr.play('countdown');
+                } else {
+                    clearInterval(cdInt);
+                    overlay.style.display = 'none';
+                    if (callback) callback();
+                }
+            }, 1000);
+        }
+
+        // --- QUESTION RENDERING ---
+        function renderQuestion() {
+            if (!questionsData || questionsData.length === 0) return;
+
+            const qIndex = appState.currentQ - 1;
+            const q = questionsData[qIndex];
+
+            document.getElementById('gameRoomBadge').innerText = appState.roomId;
+            document.getElementById('gamePlayerName').innerText = appState.deviceName;
+            document.getElementById('continueDisplay').innerText = appState.continues;
+            document.getElementById('questionNumTag').innerText = `QUESTION ${String(q.id).padStart(2, '0')} / ${questionsData.length}`;
+            document.getElementById('questionText').innerText = q.question;
+
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="option-key">${opt.id}</span> <span>${opt.text}</span>`;
+                btn.onclick = () => handleSelectOption(q.id, opt.id);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleSelectOption(questionId, selectedOptId) {
+            if (socket) {
+                socket.emit('submit_answer', {
+                    room_id: appState.roomId,
+                    question_id: questionId,
+                    selected_option: selectedOptId
+                });
+            }
+        }
+
+        // --- SCOLD MODAL LOGIC ---
+        function showMaidScoldModal(scoldMsg) {
+            document.getElementById('scoldText').innerText = `「${scoldMsg}」`;
+            document.getElementById('scoldModal').style.display = 'flex';
+        }
+
+        document.getElementById('btnRestartQ1').onclick = () => {
+            document.getElementById('scoldModal').style.display = 'none';
+            appState.continues += 1;
+            appState.currentQ = 1;
+            saveLocalState();
+            sendClientStateUpdate();
+            renderQuestion();
+        };
+
+        // --- RESULT SCREEN RENDERING ---
+        function renderResultScreen() {
+            audioMgr.stopBgm();
+            clearInterval(timerInterval);
+            showScreen('screenResult');
+
+            const isClear = (appState.status === 'cleared');
+            document.getElementById('resultHeader').innerText = isClear ? '✨ 脱 出 成 功 ✨' : '💀 ゲ ー ム オ ー バ ー 💀';
+            document.getElementById('resultHeader').style.color = isClear ? '#00ff66' : 'var(--neon-red)';
+
+            // Calculate title from local title rules if server title not set
+            let titleObj = null;
+            if (titlesData) {
+                if (isClear) {
+                    const sorted = [...titlesData.clear].sort((a,b) => a.max_continues - b.max_continues);
+                    titleObj = sorted.find(t => appState.continues <= t.max_continues) || sorted[sorted.length - 1];
+                } else {
+                    const sorted = [...titlesData.gameover].sort((a,b) => b.min_reached - a.min_reached);
+                    titleObj = sorted.find(t => appState.currentQ >= t.min_reached) || sorted[sorted.length - 1];
+                }
+            }
+
+            const title = appState.title || (titleObj ? titleObj.title : '囚われの身');
+            const comment = appState.comment || (titleObj ? titleObj.comment : '……');
+
+            document.getElementById('resultTitle').innerText = title;
+            document.getElementById('resultComment').innerText = `「${comment}」`;
+            document.getElementById('resReachedQ').innerText = isClear ? '10' : (appState.currentQ - 1);
+            document.getElementById('resContinues').innerText = appState.continues;
+
+            const escapeCodeContainer = document.getElementById('escapeCodeContainer');
+            if (isClear) {
+                escapeCodeContainer.style.display = 'block';
+                document.getElementById('escapeCodeDisplay').innerText = appState.escapeCode || 'ESC-99';
+            } else {
+                escapeCodeContainer.style.display = 'none';
+            }
+        }
+
+        // --- INIT & EVENT BINDING ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            loadLocalState();
+
+            // Fetch questions & titles
+            try {
+                const [qRes, tRes] = await Promise.all([
+                    fetch('/api/questions'),
+                    fetch('/api/titles')
+                ]);
+                questionsData = await qRes.json();
+                titlesData = await tRes.json();
+            } catch(e) {
+                console.error("Failed to load game config data:", e);
+            }
+
+            // Populate initial input values from local state if present
+            if (appState.roomId) {
+                document.getElementById('selectRoom').value = appState.roomId;
+            }
+            if (appState.deviceName) {
+                document.getElementById('inputDeviceName').value = appState.deviceName;
+            }
+
+            // Setup button click handler
+            document.getElementById('btnEnter').onclick = () => {
+                const roomVal = document.getElementById('selectRoom').value;
+                const devVal = document.getElementById('inputDeviceName').value.trim() || `Player_${Math.floor(Math.random()*1000)}`;
+
+                appState.roomId = roomVal;
+                appState.deviceName = devVal;
+                if (appState.status === 'setup') {
+                    appState.status = 'waiting';
+                }
+                saveLocalState();
+
+                audioMgr.init();
+                audioMgr.play('heartbeat', true);
+
+                initSocket();
+
+                socket.emit('join_room_req', {
+                    room_id: appState.roomId,
+                    device_name: appState.deviceName,
+                    current_q: appState.currentQ,
+                    continues: appState.continues,
+                    status: appState.status
+                });
+
+                showScreen('screenWait');
+                document.getElementById('waitRoomBadge').innerText = `ROOM: ${appState.roomId}`;
+            };
+
+            // Auto connect if user had already completed setup
+            if (appState.status !== 'setup') {
+                initSocket();
+            }
+        });
+    </script>
+</body>
+</html>

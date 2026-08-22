@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>親機監視ダッシュボード - HACKER MATRIX SYSTEM</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Shippori+Mincho:wght@700&display=swap" rel="stylesheet">
+    <!-- Socket.IO CDN -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        :root {
+            --bg-black: #050808;
+            --cyber-green: #00ff66;
+            --cyber-red: #ff1a1a;
+            --cyber-yellow: #ffcc00;
+            --cyber-dim: #102015;
+            --border-green: rgba(0, 255, 102, 0.3);
+            --font-mono: 'Share Tech Mono', monospace;
+            --font-serif: 'Shippori Mincho', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--cyber-green);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* MATRIX OVERLAY */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.4) 50%,
+                rgba(0, 0, 0, 0.4)
+            );
+            background-size: 100% 4px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--cyber-green);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px var(--cyber-green);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* BUTTONS */
+        .btn-cyber {
+            background: #000;
+            border: 1px solid var(--cyber-green);
+            color: var(--cyber-green);
+            padding: 0.6rem 1.2rem;
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.2);
+        }
+
+        .btn-cyber:hover {
+            background: var(--cyber-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--cyber-green);
+        }
+
+        .btn-cyber-danger {
+            border-color: var(--cyber-red);
+            color: var(--cyber-red);
+            box-shadow: 0 0 8px rgba(255, 26, 26, 0.2);
+        }
+
+        .btn-cyber-danger:hover {
+            background: var(--cyber-red);
+            color: #000;
+            box-shadow: 0 0 15px var(--cyber-red);
+        }
+
+        /* GRID LAYOUT FOR 10 ROOMS */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .room-card {
+            background: rgba(0, 15, 5, 0.85);
+            border: 1px solid var(--border-green);
+            padding: 1.2rem;
+            border-radius: 4px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            transition: border-color 0.3s;
+        }
+
+        .room-card.status-playing {
+            border-color: var(--cyber-yellow);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
+        }
+
+        .room-card.status-finished {
+            border-color: var(--cyber-red);
+            box-shadow: 0 0 15px rgba(255, 26, 26, 0.2);
+        }
+
+        .room-title {
+            font-size: 1.3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border-green);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .status-pill {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .pill-waiting { background: #112211; color: var(--cyber-green); border: 1px solid var(--cyber-green); }
+        .pill-playing { background: #222000; color: var(--cyber-yellow); border: 1px solid var(--cyber-yellow); }
+        .pill-finished { background: #220000; color: var(--cyber-red); border: 1px solid var(--cyber-red); }
+
+        .client-info-list {
+            min-height: 120px;
+            margin-bottom: 1rem;
+        }
+
+        .client-item {
+            background: rgba(0,0,0,0.5);
+            padding: 0.6rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid var(--cyber-green);
+            font-size: 0.9rem;
+        }
+
+        .client-item.cleared { border-left-color: var(--cyber-green); }
+        .client-item.gameover { border-left-color: var(--cyber-red); }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.3rem;
+        }
+
+        .room-timer {
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 0.8rem 0;
+            background: #000;
+            padding: 0.4rem;
+            border: 1px solid #222;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .card-actions button {
+            flex: 1;
+            font-size: 0.85rem;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanline"></div>
+
+    <header>
+        <h1><span>👁️</span> MAID MANSION ESCAPE - MONITOR MATRIX</h1>
+        <div class="header-controls">
+            <button class="btn-cyber" id="btnStartAll">⚡ 一括スタート (10部屋)</button>
+            <button class="btn-cyber btn-cyber-danger" id="btnResetAll">⚠️ 一括強制リセット</button>
+        </div>
+    </header>
+
+    <div class="rooms-grid" id="roomsGrid">
+        <!-- 10 Room cards auto generated -->
+    </div>
+
+    <script>
+        const socket = io();
+        let roomsData = {};
+        let timerInterval = null;
+
+        socket.on('connect', () => {
+            console.log("Connected to Admin SocketIO Server. SID:", socket.id);
+        });
+
+        socket.on('admin_state_update', (data) => {
+            roomsData = data;
+            renderGrid();
+        });
+
+        function renderGrid() {
+            const grid = document.getElementById('roomsGrid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= 10; i++) {
+                const roomId = `Room_${i}`;
+                const room = roomsData[roomId] || {
+                    room_id: roomId,
+                    status: 'waiting',
+                    start_time: null,
+                    duration: 180,
+                    escape_code: '------',
+                    clients: {}
+                };
+
+                const card = document.createElement('div');
+                card.className = `room-card status-${room.status}`;
+
+                let statusPillClass = 'pill-waiting';
+                if (room.status === 'playing') statusPillClass = 'pill-playing';
+                if (room.status === 'finished') statusPillClass = 'pill-finished';
+
+                // Calculate timer
+                let timerText = "03:00";
+                if (room.status === 'playing' && room.start_time) {
+                    const elapsed = (Date.now() / 1000) - room.start_time;
+                    const rem = Math.max(0, Math.floor(room.duration - elapsed));
+                    const mins = String(Math.floor(rem / 60)).padStart(2, '0');
+                    const secs = String(rem % 60).padStart(2, '0');
+                    timerText = `${mins}:${secs}`;
+                }
+
+                // Render clients list
+                const clientsKeys = Object.keys(room.clients || {});
+                let clientsHtml = '';
+
+                if (clientsKeys.length === 0) {
+                    clientsHtml = `<div style="color: #555; text-align: center; padding: 1.5rem 0;">( 未接続 )</div>`;
+                } else {
+                    clientsKeys.forEach(sid => {
+                        const c = room.clients[sid];
+                        clientsHtml += `
+                            <div class="client-item ${c.status}">
+                                <div style="display: flex; justify-content: space-between; font-weight: bold; color: #fff;">
+                                    <span>👤 ${c.device_name}</span>
+                                    <span>${c.status.toUpperCase()}</span>
+                                </div>
+                                <div class="stat-line">
+                                    <span>現在問題: Q.${c.current_q} / 10</span>
+                                    <span>ミス: ${c.continues}回</span>
+                                </div>
+                                ${c.title ? `<div style="color: var(--cyber-yellow); font-size: 0.8rem; margin-top: 0.3rem;">称号: ${c.title}</div>` : ''}
+                            </div>
+                        `;
+                    });
+                }
+
+                card.innerHTML = `
+                    <div class="room-title">
+                        <span>${roomId}</span>
+                        <span class="status-pill ${statusPillClass}">${room.status}</span>
+                    </div>
+
+                    <div class="room-timer" id="timer_${roomId}">${timerText}</div>
+
+                    <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.5rem;">
+                        脱出コード: <span style="color: var(--cyber-green); font-weight: bold;">${room.escape_code}</span>
+                    </div>
+
+                    <div class="client-info-list">
+                        ${clientsHtml}
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-cyber" onclick="startRoom('${roomId}')" ${room.status === 'playing' ? 'disabled' : ''}>スタート</button>
+                        <button class="btn-cyber btn-cyber-danger" onclick="resetRoom('${roomId}')">強制リセット</button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            }
+        }
+
+        function startRoom(roomId) {
+            socket.emit('admin_start_room', { room_id: roomId });
+        }
+
+        function resetRoom(roomId) {
+            if (confirm(`${roomId} を初期状態にリセットしますか？`)) {
+                socket.emit('admin_reset_room', { room_id: roomId });
+            }
+        }
+
+        document.getElementById('btnStartAll').onclick = () => {
+            if (confirm('全10部屋を一括スタートしますか？')) {
+                socket.emit('admin_start_all');
+            }
+        };
+
+        document.getElementById('btnResetAll').onclick = () => {
+            if (confirm('全10部屋を一括強制リセットしますか？')) {
+                socket.emit('admin_reset_all');
+            }
+        };
+
+        // Local timer refresh
+        setInterval(() => {
+            if (roomsData) {
+                for (let roomId in roomsData) {
+                    const room = roomsData[roomId];
+                    const timerEl = document.getElementById(`timer_${roomId}`);
+                    if (timerEl && room.status === 'playing' && room.start_time) {
+                        const elapsed = (Date.now() / 1000) - room.start_time;
+                        const rem = Math.max(0, Math.floor(room.duration - elapsed));
+                        const mins = String(Math.floor(rem / 60)).padStart(2, '0');
+                        const secs = String(rem % 60).padStart(2, '0');
+                        timerEl.innerText = `${mins}:${secs}`;
+                    }
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
