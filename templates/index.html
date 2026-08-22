@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ヤンデレメイドの館からの脱出 - Local Escape Game</title>
-    <!-- Google Fonts: Shippori Mincho -->
+    <title>狂愛ヤンデレメイドの館 - 病みかわいいホラー解読</title>
+    <!-- Google Fonts: Shippori Mincho & Zen Maru Gothic -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Maru+Gothic:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <!-- Socket.IO CDN -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         :root {
-            --bg-black: #0a0a0a;
+            --bg-black: #080305;
+            --yami-pink: #ff66aa;
+            --pastel-pink: #ffb3d9;
             --dark-crimson: #8b0000;
+            --blood-red: #ff0033;
             --neon-red: #ff1a1a;
-            --blood-red: #cc0000;
-            --text-main: #e0e0e0;
-            --dim-gray: #333333;
-            --noise-gray: #1a1a1a;
+            --text-main: #fce4ec;
             --font-serif: 'Shippori Mincho', serif;
+            --font-kawaii: 'Zen Maru Gothic', sans-serif;
             --font-mono: 'Share Tech Mono', monospace;
         }
 
@@ -42,7 +43,7 @@
             position: relative;
         }
 
-        /* --- VISUAL EFFECTS: Vignette, Scanlines, Blood Pulse, Noise --- */
+        /* --- VISUAL EFFECTS: Vignette, Scanlines, Blood Drips, Screen Shake --- */
         .vignette {
             position: fixed;
             top: 0;
@@ -51,7 +52,7 @@
             height: 100vh;
             pointer-events: none;
             z-index: 100;
-            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9), inset 0 0 40px var(--dark-crimson);
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.92), inset 0 0 50px var(--dark-crimson);
             transition: box-shadow 0.5s ease;
         }
 
@@ -67,8 +68,8 @@
                 to bottom,
                 rgba(255,255,255,0),
                 rgba(255,255,255,0) 50%,
-                rgba(0, 0, 0, 0.3) 50%,
-                rgba(0, 0, 0, 0.3)
+                rgba(0, 0, 0, 0.35) 50%,
+                rgba(0, 0, 0, 0.35)
             );
             background-size: 100% 4px;
             opacity: 0.6;
@@ -83,36 +84,49 @@
             pointer-events: none;
             z-index: 102;
             opacity: 0;
-            box-shadow: inset 0 0 80px var(--neon-red), inset 0 0 150px var(--dark-crimson);
+            box-shadow: inset 0 0 100px var(--blood-red), inset 0 0 180px var(--dark-crimson);
             transition: opacity 0.3s ease;
         }
 
         .blood-overlay.pulse {
-            animation: pulse-blood 1s infinite alternate;
+            animation: pulse-blood 0.9s infinite alternate;
         }
 
         @keyframes pulse-blood {
-            0% { opacity: 0.3; transform: scale(1); }
-            100% { opacity: 0.85; transform: scale(1.02); }
+            0% { opacity: 0.35; transform: scale(1); }
+            100% { opacity: 0.9; transform: scale(1.03); }
         }
 
-        .flash-red {
+        .flash-scary {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: var(--neon-red);
+            background: radial-gradient(circle, var(--blood-red) 0%, #000 90%);
             z-index: 999;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.05s linear;
         }
 
+        .shake-intense {
+            animation: glitch-shake 0.12s infinite;
+        }
+
+        @keyframes glitch-shake {
+            0% { transform: translate(0, 0) rotate(0deg); filter: invert(0); }
+            20% { transform: translate(-8px, 6px) rotate(-3deg); filter: invert(0.8); }
+            40% { transform: translate(8px, -6px) rotate(3deg); filter: invert(0); }
+            60% { transform: translate(-5px, -5px) rotate(-1deg); filter: invert(1); }
+            80% { transform: translate(6px, 4px) rotate(2deg); filter: invert(0); }
+            100% { transform: translate(0, 0) rotate(0deg); filter: invert(0); }
+        }
+
         /* --- LAYOUT & SCREEN CONTAINERS --- */
         .app-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 880px;
             min-height: 600px;
             padding: 2rem;
             position: relative;
@@ -134,104 +148,114 @@
         }
 
         @keyframes glitch-appear {
-            0% { opacity: 0; transform: scale(0.98) skewX(2deg); filter: invert(1); }
-            50% { opacity: 0.8; transform: scale(1.01) skewX(-2deg); }
-            100% { opacity: 1; transform: scale(1) skewX(0); filter: invert(0); }
+            0% { opacity: 0; transform: scale(0.97) skewX(2deg); }
+            100% { opacity: 1; transform: scale(1) skewX(0); }
         }
 
-        /* --- TYPOGRAPHY & HEADERS --- */
-        h1, h2, h3 {
-            color: var(--neon-red);
-            text-shadow: 0 0 10px var(--dark-crimson), 0 0 20px #000;
-            letter-spacing: 2px;
-            margin-bottom: 1.5rem;
-        }
-
+        /* --- TYPOGRAPHY & YAMI-KAWAII HEADERS --- */
         h1 {
+            color: var(--yami-pink);
             font-size: 2.5rem;
             font-weight: 800;
+            text-shadow: 0 0 15px var(--yami-pink), 0 0 30px var(--dark-crimson);
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        h1 span.heart {
+            color: var(--blood-red);
+            animation: heartbeat 0.8s infinite alternate;
+            display: inline-block;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.3); }
         }
 
         h2 {
             font-size: 1.8rem;
+            color: var(--yami-pink);
+            text-shadow: 0 0 10px var(--dark-crimson);
+            margin-bottom: 1rem;
         }
 
-        p {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-        }
-
-        .sub-text {
-            color: #aaa;
+        .yami-badge {
+            background: linear-gradient(135deg, rgba(255, 102, 170, 0.2), rgba(139, 0, 0, 0.6));
+            border: 1px solid var(--yami-pink);
+            color: var(--pastel-pink);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
             font-size: 0.95rem;
+            font-family: var(--font-kawaii);
+            display: inline-block;
+            margin-bottom: 1rem;
         }
 
-        /* --- BUTTONS & INPUTS WITH GLITCH EFFECTS --- */
+        /* --- BUTTONS & INPUTS WITH KAWAII GLITCH EFFECTS --- */
         .input-group {
-            margin: 1.5rem 0;
+            margin: 1.2rem 0;
             display: flex;
             flex-direction: column;
-            gap: 0.8rem;
+            gap: 0.6rem;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
         }
 
         label {
             font-size: 1.1rem;
-            color: var(--neon-red);
+            color: var(--yami-pink);
             text-align: left;
+            font-family: var(--font-kawaii);
         }
 
         select, input[type="text"] {
-            background-color: #111;
+            background-color: #12050a;
             border: 2px solid var(--dark-crimson);
             color: var(--text-main);
             padding: 0.8rem 1rem;
             font-size: 1.1rem;
             font-family: var(--font-serif);
             outline: none;
-            border-radius: 4px;
-            transition: border-color 0.3s;
+            border-radius: 8px;
+            transition: all 0.3s;
         }
 
         select:focus, input[type="text"]:focus {
-            border-color: var(--neon-red);
-            box-shadow: 0 0 10px var(--neon-red);
+            border-color: var(--yami-pink);
+            box-shadow: 0 0 15px var(--yami-pink);
         }
 
-        .btn-horror {
-            background-color: var(--dark-crimson);
-            color: #fff;
-            border: 1px solid var(--neon-red);
-            padding: 0.9rem 2rem;
-            font-size: 1.2rem;
-            font-family: var(--font-serif);
+        .btn-yami {
+            background: linear-gradient(135deg, var(--dark-crimson), #400010);
+            color: var(--pastel-pink);
+            border: 2px solid var(--yami-pink);
+            padding: 0.9rem 2.2rem;
+            font-size: 1.25rem;
+            font-family: var(--font-kawaii);
             font-weight: 700;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
+            border-radius: 30px;
             letter-spacing: 2px;
-            box-shadow: 0 0 15px rgba(139, 0, 0, 0.6);
+            box-shadow: 0 0 20px rgba(255, 102, 170, 0.4);
             transition: all 0.2s ease;
             margin-top: 1rem;
         }
 
-        .btn-horror:hover {
-            background-color: var(--neon-red);
+        .btn-yami:hover {
+            background: var(--yami-pink);
             color: #000;
-            box-shadow: 0 0 25px var(--neon-red);
+            box-shadow: 0 0 30px var(--yami-pink);
             transform: translateY(-2px);
             animation: btn-glitch 0.2s infinite;
         }
 
         @keyframes btn-glitch {
             0% { transform: translate(0, 0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(2px, -2px); }
-            60% { transform: translate(-1px, -1px); }
-            80% { transform: translate(2px, 1px); }
+            25% { transform: translate(-2px, 2px); }
+            50% { transform: translate(2px, -2px); }
+            75% { transform: translate(-1px, 1px); }
             100% { transform: translate(0, 0); }
         }
 
@@ -241,101 +265,135 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--dark-crimson);
+            border-bottom: 2px dashed var(--yami-pink);
             padding-bottom: 0.8rem;
             margin-bottom: 1.5rem;
         }
 
         .room-badge {
             font-family: var(--font-mono);
-            background-color: var(--dark-crimson);
+            background: var(--dark-crimson);
+            border: 1px solid var(--yami-pink);
+            color: var(--pastel-pink);
             padding: 0.4rem 0.8rem;
-            border-radius: 4px;
+            border-radius: 12px;
             font-size: 0.9rem;
-            letter-spacing: 1px;
         }
 
         .timer-box {
             font-family: var(--font-mono);
             font-size: 2.2rem;
-            color: var(--neon-red);
-            text-shadow: 0 0 10px var(--neon-red);
-            background: rgba(0,0,0,0.8);
-            padding: 0.3rem 1rem;
-            border: 1px solid var(--dark-crimson);
-            border-radius: 4px;
+            color: var(--blood-red);
+            text-shadow: 0 0 12px var(--blood-red);
+            background: rgba(0,0,0,0.85);
+            padding: 0.3rem 1.2rem;
+            border: 2px solid var(--dark-crimson);
+            border-radius: 8px;
         }
 
         .stats-box {
             font-size: 1rem;
-            color: #aaa;
+            color: #ddd;
+            font-family: var(--font-kawaii);
         }
 
         .stats-box span {
-            color: var(--neon-red);
+            color: var(--yami-pink);
             font-weight: bold;
         }
 
-        /* --- QUESTION & OPTIONS --- */
+        /* --- QUESTION & OPTIONS CARD --- */
         .question-card {
-            background-color: rgba(15, 15, 15, 0.9);
-            border: 2px solid var(--dark-crimson);
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            background-color: rgba(18, 5, 12, 0.92);
+            border: 2px solid var(--yami-pink);
+            box-shadow: 0 0 35px rgba(255, 102, 170, 0.25);
             padding: 2rem;
-            border-radius: 8px;
+            border-radius: 12px;
             width: 100%;
             text-align: left;
             margin-bottom: 1.5rem;
+            position: relative;
         }
 
         .question-title {
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             margin-bottom: 1.5rem;
             color: #ffffff;
-            line-height: 1.6;
-            border-left: 4px solid var(--neon-red);
+            line-height: 1.7;
+            border-left: 4px solid var(--yami-pink);
             padding-left: 1rem;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 0.9rem;
             width: 100%;
         }
 
         .option-btn {
-            background: #141414;
-            border: 1px solid #444;
-            color: #ddd;
+            background: #1a0812;
+            border: 1px solid #552238;
+            color: var(--text-main);
             padding: 1rem 1.2rem;
             text-align: left;
             font-size: 1.1rem;
             font-family: var(--font-serif);
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 8px;
             transition: all 0.2s;
             display: flex;
             align-items: center;
         }
 
         .option-btn:hover {
-            border-color: var(--neon-red);
-            background-color: #220505;
+            border-color: var(--yami-pink);
+            background-color: #330d22;
             color: #fff;
-            box-shadow: 0 0 10px rgba(255, 26, 26, 0.4);
-            transform: translateX(5px);
+            box-shadow: 0 0 15px rgba(255, 102, 170, 0.5);
+            transform: translateX(6px);
         }
 
         .option-key {
             font-family: var(--font-mono);
             font-weight: bold;
-            color: var(--neon-red);
+            color: var(--yami-pink);
             margin-right: 1rem;
             font-size: 1.2rem;
-            background: rgba(139, 0, 0, 0.3);
+            background: rgba(139, 0, 0, 0.4);
             padding: 0.2rem 0.6rem;
-            border-radius: 3px;
+            border-radius: 4px;
+        }
+
+        /* --- COMMENTARY / EXPLANATION MODAL (CORRECT & WRONG BEFORE PUNISHMENT) --- */
+        .commentary-card {
+            background: rgba(15, 2, 8, 0.95);
+            border: 2px solid var(--yami-pink);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            text-align: left;
+            box-shadow: 0 0 30px rgba(255, 102, 170, 0.3);
+            display: none;
+            animation: glitch-appear 0.2s linear;
+        }
+
+        .commentary-header {
+            font-family: var(--font-kawaii);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--yami-pink);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .commentary-body {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: #fff;
+            margin-bottom: 1.2rem;
         }
 
         /* --- COUNTDOWN OVERLAY --- */
@@ -345,7 +403,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0,0,0,0.95);
+            background: rgba(5, 0, 3, 0.96);
             z-index: 500;
             display: none;
             flex-direction: column;
@@ -356,8 +414,8 @@
         .countdown-number {
             font-size: 10rem;
             font-family: var(--font-mono);
-            color: var(--neon-red);
-            text-shadow: 0 0 30px var(--neon-red);
+            color: var(--yami-pink);
+            text-shadow: 0 0 35px var(--yami-pink);
             animation: cd-pop 0.9s infinite;
         }
 
@@ -367,96 +425,130 @@
             100% { transform: scale(0.9); opacity: 0.8; }
         }
 
-        /* --- MAID SCOLD MODAL --- */
+        /* --- SCARY MAID PUNISHMENT MODAL (お仕置き演出) --- */
         .modal-backdrop {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(10, 0, 0, 0.92);
+            background: rgba(10, 0, 0, 0.96);
             z-index: 600;
             display: none;
             justify-content: center;
             align-items: center;
             padding: 1rem;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
             animation: glitch-appear 0.1s linear;
         }
 
-        .modal-content {
-            background-color: #110303;
-            border: 3px solid var(--neon-red);
-            box-shadow: 0 0 50px var(--neon-red);
+        .punishment-content {
+            background-color: #120003;
+            border: 3px solid var(--blood-red);
+            box-shadow: 0 0 70px var(--blood-red);
             padding: 2.5rem;
-            max-width: 600px;
+            max-width: 620px;
             width: 100%;
             text-align: center;
-            border-radius: 8px;
+            border-radius: 12px;
             position: relative;
         }
 
-        .maid-avatar {
-            font-size: 3.5rem;
+        .scary-avatar {
+            font-size: 4rem;
             margin-bottom: 1rem;
-            animation: shake 0.5s infinite;
+            animation: scary-shake 0.1s infinite;
         }
 
-        @keyframes shake {
-            0% { transform: translate(0,0) rotate(0deg); }
-            25% { transform: translate(-3px, 3px) rotate(-2deg); }
-            50% { transform: translate(3px, -3px) rotate(2deg); }
-            75% { transform: translate(-2px, -2px) rotate(-1deg); }
-            100% { transform: translate(0,0) rotate(0deg); }
+        @keyframes scary-shake {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            20% { transform: translate(-8px, 8px) scale(1.15) rotate(-4deg); filter: contrast(200%); }
+            40% { transform: translate(8px, -8px) scale(0.9) rotate(4deg); }
+            60% { transform: translate(-6px, -6px) scale(1.2) rotate(-2deg); filter: invert(0.8); }
+            80% { transform: translate(6px, 6px) scale(1.05) rotate(3deg); }
+            100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        }
+
+        .punishment-title {
+            color: var(--blood-red);
+            font-size: 2rem;
+            font-family: var(--font-kawaii);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px var(--blood-red);
         }
 
         .scold-text {
-            font-size: 1.4rem;
-            color: var(--neon-red);
+            font-size: 1.35rem;
+            color: #fff;
             font-weight: bold;
             margin-bottom: 1.5rem;
             line-height: 1.6;
+            background: rgba(139, 0, 0, 0.3);
+            padding: 1rem;
+            border-left: 4px solid var(--blood-red);
+            border-radius: 4px;
+        }
+
+        .auto-timer-badge {
+            font-family: var(--font-mono);
+            font-size: 1.4rem;
+            color: var(--yami-pink);
+            background: #000;
+            border: 1px solid var(--blood-red);
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 1rem;
+            box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
         }
 
         /* --- RESULT SCREEN --- */
         .result-card {
-            background: rgba(15, 0, 0, 0.9);
-            border: 3px solid var(--dark-crimson);
+            background: rgba(18, 2, 10, 0.94);
+            border: 3px solid var(--yami-pink);
             padding: 2.5rem;
-            border-radius: 8px;
-            box-shadow: 0 0 40px rgba(139, 0, 0, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(255, 102, 170, 0.4);
             width: 100%;
             max-width: 650px;
         }
 
         .title-badge {
-            font-size: 2rem;
-            color: var(--neon-red);
-            text-shadow: 0 0 15px var(--neon-red);
+            font-size: 2.1rem;
+            color: var(--yami-pink);
+            text-shadow: 0 0 20px var(--yami-pink);
             margin: 1rem 0;
             font-weight: 800;
+            font-family: var(--font-kawaii);
         }
 
         .comment-box {
             font-size: 1.2rem;
             color: #eee;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             padding: 1.5rem;
-            border-left: 3px solid var(--neon-red);
+            border-left: 4px solid var(--yami-pink);
             margin: 1.5rem 0;
             text-align: left;
             line-height: 1.8;
+            border-radius: 6px;
         }
 
         .escape-code-box {
             background: #000;
-            border: 2px dashed var(--neon-red);
+            border: 2px dashed var(--yami-pink);
             padding: 1rem;
             margin: 1.5rem 0;
             font-family: var(--font-mono);
             font-size: 1.8rem;
             color: #00ff66;
-            text-shadow: 0 0 10px #00ff66;
+            text-shadow: 0 0 12px #00ff66;
             letter-spacing: 5px;
+            border-radius: 8px;
         }
 
         .pulse-text {
@@ -471,38 +563,49 @@
 </head>
 <body>
 
-    <!-- CSS VISUAL EFFECTS -->
+    <!-- VISUAL EFFECTS OVERLAYS -->
     <div class="vignette"></div>
     <div class="scanline"></div>
     <div class="blood-overlay" id="bloodOverlay"></div>
-    <div class="flash-red" id="flashRed"></div>
+    <div class="flash-scary" id="flashScary"></div>
 
     <!-- COUNTDOWN OVERLAY -->
     <div class="countdown-overlay" id="countdownOverlay">
-        <div style="font-size: 1.8rem; color: #aaa; margin-bottom: 1rem;">閉ざされた扉が開く…</div>
+        <div style="font-size: 1.8rem; color: var(--pastel-pink); font-family: var(--font-kawaii); margin-bottom: 1rem;">
+            🎀 狂愛の館の扉が開くよ… 💖
+        </div>
         <div class="countdown-number" id="countdownNum">3</div>
     </div>
 
-    <!-- MAID SCOLD MODAL -->
+    <!-- SCARY MAID PUNISHMENT MODAL (お仕置き演出) -->
     <div class="modal-backdrop" id="scoldModal">
-        <div class="modal-content">
-            <div class="maid-avatar">🩸🖤🔪</div>
+        <div class="punishment-content">
+            <div class="scary-avatar">🔪🩸🖤😠💉</div>
+            <div class="punishment-title">💢 メ イ ド の お 仕 置 き 💢</div>
             <div class="scold-text" id="scoldText">「は？どこ見てるの？私のこと全然見てないじゃない！！」</div>
-            <p style="color: #bbb; font-size: 0.95rem; margin-bottom: 1.5rem;">メイドの怒りにより、最初からやり直さなければなりません…</p>
-            <button class="btn-horror" id="btnRestartQ1">最初からやり直す (Q.1へ)</button>
+            <p style="color: var(--pastel-pink); font-size: 1rem; font-family: var(--font-kawaii); margin-bottom: 1rem;">
+                愛の足りないあなたにお仕置きだよ… 最初からやり直しね♡
+            </p>
+            <div class="auto-timer-badge">
+                ⏳ <span id="punishCountdownNum">5</span> 秒後に Q.1 へ戻ります…
+            </div>
         </div>
     </div>
 
     <!-- MAIN APP CONTAINER -->
-    <div class="app-container">
+    <div class="app-container" id="mainAppContainer">
 
         <!-- SCREEN 1: ROOM SETUP & AUDIO UNLOCK -->
         <div class="screen active" id="screenSetup">
-            <h1>ヤンデレメイドの館</h1>
-            <p style="color: #ccc;">あなたは館に閉じ込められました。<br>メイドの機嫌を損ねずに10の問いに答え、無事脱出しなさい。</p>
+            <div class="yami-badge">💖 狂愛・溺愛・病みかわいい謎解き 🎀</div>
+            <h1>ヤンデレメイドの館 <span class="heart">♥</span></h1>
+            <p style="color: var(--pastel-pink); line-height: 1.8;">
+                あなたは私の愛から逃げられると思ってるの…？<br>
+                10の問いに正しく答えて、私の重すぎる愛を証明してみてね♡
+            </p>
 
             <div class="input-group">
-                <label for="selectRoom">部屋番号 (端末指定)</label>
+                <label for="selectRoom">🎀 部屋番号 (端末指定)</label>
                 <select id="selectRoom">
                     <option value="Room_1">第 1 部屋 (Room_1)</option>
                     <option value="Room_2">第 2 部屋 (Room_2)</option>
@@ -518,22 +621,23 @@
             </div>
 
             <div class="input-group">
-                <label for="inputDeviceName">プレイヤー名 / 端末名</label>
-                <input type="text" id="inputDeviceName" placeholder="例: 挑戦者A" maxlength="15">
+                <label for="inputDeviceName">💖 プレイヤー名 / 端末名</label>
+                <input type="text" id="inputDeviceName" placeholder="例: 愛しのあなた" maxlength="15">
             </div>
 
-            <button class="btn-horror" id="btnEnter">館に入る (音声を有効化)</button>
-            <p class="sub-text" style="margin-top: 1rem;">※クリックでオーディオ権限を取得します</p>
+            <button class="btn-yami" id="btnEnter">館に入る (音声を有効化) 💖</button>
+            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">※クリックでオーディオ権限を取得します</p>
         </div>
 
         <!-- SCREEN 2: WAITING FOR ADMIN START -->
         <div class="screen" id="screenWait">
-            <h2 class="pulse-text">主（サーバー）の開始指示を待っています…</h2>
-            <p>音響の準備が完了しました。静寂の中に鼓動が響いています。</p>
-            <div class="room-badge" id="waitRoomBadge" style="font-size: 1.2rem; padding: 0.8rem 1.5rem; margin-top: 1rem;">
+            <div class="yami-badge">🔒 WAITING ROOM</div>
+            <h2 class="pulse-text">愛しのあなたの到着を待っています… 💖</h2>
+            <p style="color: var(--pastel-pink);">親機（サーバー）からのスタート合図でゲームが始まります。</p>
+            <div class="room-badge" id="waitRoomBadge" style="font-size: 1.2rem; padding: 0.8rem 1.8rem; margin-top: 1rem;">
                 ROOM: -
             </div>
-            <p class="sub-text" style="margin-top: 2rem;">※ブラウザを閉じたり更新しても、自動的に復元されます。</p>
+            <p style="color: #777; font-size: 0.85rem; margin-top: 2rem;">※ブラウザを再読み込みしても、状態は自動で復元されます。</p>
         </div>
 
         <!-- SCREEN 3: GAME PLAY -->
@@ -541,24 +645,35 @@
             <div class="game-header">
                 <div>
                     <span class="room-badge" id="gameRoomBadge">Room_1</span>
-                    <span id="gamePlayerName" style="margin-left: 0.8rem; font-weight: bold; color: #ccc;">-</span>
+                    <span id="gamePlayerName" style="margin-left: 0.8rem; font-weight: bold; color: var(--yami-pink); font-family: var(--font-kawaii);">-</span>
                 </div>
                 <div class="timer-box" id="timerDisplay">03:00</div>
                 <div class="stats-box">
-                    Mistakes: <span id="continueDisplay">0</span>
+                    お仕置き回数: <span id="continueDisplay">0</span> 回
                 </div>
             </div>
 
             <div class="question-card">
-                <div style="font-family: var(--font-mono); color: var(--neon-red); font-size: 1.1rem; margin-bottom: 0.5rem;" id="questionNumTag">
+                <div style="font-family: var(--font-mono); color: var(--yami-pink); font-size: 1.1rem; margin-bottom: 0.5rem;" id="questionNumTag">
                     QUESTION 01 / 10
                 </div>
                 <div class="question-title" id="questionText">
                     読み込み中…
                 </div>
                 <div class="options-grid" id="optionsContainer">
-                    <!-- Option buttons dynamically inserted -->
+                    <!-- Options buttons dynamically inserted -->
                 </div>
+            </div>
+
+            <!-- COMMENTARY / EXPLANATION MODAL (For correct answer & before punishment) -->
+            <div class="commentary-card" id="commentaryCard">
+                <div class="commentary-header" id="commentaryHeader">
+                    💖 メイドからのメッセージ
+                </div>
+                <div class="commentary-body" id="commentaryText">
+                    -
+                </div>
+                <button class="btn-yami" id="btnNextQuestion" style="margin-top: 0; width: 100%;">次へ進む 💖</button>
             </div>
         </div>
 
@@ -567,35 +682,36 @@
             <div class="result-card">
                 <h2 id="resultHeader">脱出結果</h2>
 
-                <div style="color: #aaa; font-size: 1.1rem;">獲得称号</div>
+                <div style="color: var(--pastel-pink); font-size: 1.1rem; font-family: var(--font-kawaii);">獲得称号</div>
                 <div class="title-badge" id="resultTitle">共犯者（ヤンデレマスター）</div>
 
                 <div class="comment-box">
-                    <div style="color: var(--neon-red); font-weight: bold; margin-bottom: 0.5rem;">メイドからのメッセージ:</div>
+                    <div style="color: var(--yami-pink); font-weight: bold; margin-bottom: 0.5rem; font-family: var(--font-kawaii);">
+                        メイドからのささやき:
+                    </div>
                     <p id="resultComment" style="margin-bottom: 0;">「……」</p>
                 </div>
 
                 <div id="escapeCodeContainer" style="display: none;">
-                    <div style="color: #aaa; font-size: 1rem;">館の脱出認証コード:</div>
+                    <div style="color: var(--pastel-pink); font-size: 1rem; font-family: var(--font-kawaii);">館の脱出認証コード:</div>
                     <div class="escape-code-box" id="escapeCodeDisplay">XXXXXX</div>
                 </div>
 
                 <div style="display: flex; justify-content: space-around; margin-top: 1.5rem; color: #ccc; font-family: var(--font-mono);">
-                    <div>到達問題: <span id="resReachedQ" style="color: var(--neon-red); font-weight: bold;">10</span> / 10</div>
-                    <div>コンティニュー回数: <span id="resContinues" style="color: var(--neon-red); font-weight: bold;">0</span> 回</div>
+                    <div>到達問題: <span id="resReachedQ" style="color: var(--yami-pink); font-weight: bold;">10</span> / 10</div>
+                    <div>お仕置き回数: <span id="resContinues" style="color: var(--yami-pink); font-weight: bold;">0</span> 回</div>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- AUDIO SYSTEM INTERFACE -->
+    <!-- AUDIO & LOGIC SYSTEM INTERFACE -->
     <script>
         // --- AUDIO MANAGER WITH WEB AUDIO API SYNTH FALLBACK ---
         class HorrorAudioManager {
             constructor() {
                 this.ctx = null;
-                this.audioCache = {};
                 this.audioFiles = {
                     heartbeat: '/static/audio/heartbeat_slow.mp3',
                     countdown: '/static/audio/countdown.mp3',
@@ -618,11 +734,9 @@
                 }
             }
 
-            // Play HTML5 audio file or synthesize if file missing/error
             play(soundKey, loop = false) {
                 this.init();
 
-                // Stop previous BGM if playing bgm
                 if (soundKey.startsWith('bgm')) {
                     this.stopBgm();
                 }
@@ -637,7 +751,6 @@
                             this.currentBgm = audio;
                         }
                     }).catch(err => {
-                        console.warn(`Audio file ${this.audioFiles[soundKey]} not found or blocked. Playing synth fallback.`);
                         this.playSynthFallback(soundKey);
                     });
                 }
@@ -656,11 +769,10 @@
                 const now = this.ctx.currentTime;
 
                 if (key === 'heartbeat') {
-                    // Low pulsing pulse sound
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(60, now);
+                    osc.frequency.setValueAtTime(65, now);
                     osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
                     gain.gain.setValueAtTime(0.5, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
@@ -669,11 +781,10 @@
                     osc.start(now);
                     osc.stop(now + 0.3);
                 } else if (key === 'countdown') {
-                    // High metallic ping
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(523.25, now);
                     gain.gain.setValueAtTime(0.3, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
                     osc.connect(gain);
@@ -681,39 +792,37 @@
                     osc.start(now);
                     osc.stop(now + 0.2);
                 } else if (key === 'scream') {
-                    // Harsh noise / dissonant saw wave scream
                     const osc1 = this.ctx.createOscillator();
                     const osc2 = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc1.type = 'sawtooth';
                     osc2.type = 'sawtooth';
-                    osc1.frequency.setValueAtTime(800, now);
-                    osc1.frequency.linearRampToValueAtTime(200, now + 0.6);
-                    osc2.frequency.setValueAtTime(830, now);
-                    osc2.frequency.linearRampToValueAtTime(190, now + 0.6);
-                    gain.gain.setValueAtTime(0.6, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                    osc1.frequency.setValueAtTime(900, now);
+                    osc1.frequency.linearRampToValueAtTime(180, now + 0.7);
+                    osc2.frequency.setValueAtTime(940, now);
+                    osc2.frequency.linearRampToValueAtTime(170, now + 0.7);
+                    gain.gain.setValueAtTime(0.7, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
                     osc1.connect(gain);
                     osc2.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc1.start(now);
                     osc2.start(now);
-                    osc1.stop(now + 0.6);
-                    osc2.stop(now + 0.6);
+                    osc1.stop(now + 0.7);
+                    osc2.stop(now + 0.7);
                 } else if (key === 'correct') {
-                    // Pleasant arpeggio chime
-                    const freqs = [523.25, 659.25, 783.99]; // C5, E5, G5
+                    const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
                     freqs.forEach((f, idx) => {
                         const osc = this.ctx.createOscillator();
                         const gain = this.ctx.createGain();
                         osc.type = 'sine';
-                        osc.frequency.setValueAtTime(f, now + idx * 0.08);
-                        gain.gain.setValueAtTime(0.2, now + idx * 0.08);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+                        osc.frequency.setValueAtTime(f, now + idx * 0.07);
+                        gain.gain.setValueAtTime(0.25, now + idx * 0.07);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.35);
                         osc.connect(gain);
                         gain.connect(this.ctx.destination);
-                        osc.start(now + idx * 0.08);
-                        osc.stop(now + idx * 0.08 + 0.3);
+                        osc.start(now + idx * 0.07);
+                        osc.stop(now + idx * 0.07 + 0.35);
                     });
                 }
             }
@@ -722,11 +831,11 @@
         const audioMgr = new HorrorAudioManager();
 
         // --- APP STATE & LOCALSTORAGE MANAGER ---
-        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v1';
+        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v2';
 
         let appState = {
             roomId: 'Room_1',
-            deviceName: 'Challenger',
+            deviceName: '愛しのあなた',
             currentQ: 1,
             continues: 0,
             status: 'setup', // setup, waiting, playing, cleared, gameover
@@ -740,6 +849,7 @@
         let titlesData = null;
         let socket = null;
         let timerInterval = null;
+        let punishmentTimerInterval = null;
         let remainingSeconds = 180;
 
         function loadLocalState() {
@@ -767,11 +877,21 @@
             }
         }
 
-        // --- FLASH & VIGNETTE EFFECTS ---
-        function triggerRedFlash() {
-            const flash = document.getElementById('flashRed');
-            flash.style.opacity = '0.95';
-            setTimeout(() => { flash.style.opacity = '0'; }, 150);
+        // --- FLASH & SCREEN SHAKE EFFECTS ---
+        function triggerScaryEffect() {
+            const flash = document.getElementById('flashScary');
+            const mainContainer = document.getElementById('mainAppContainer');
+
+            flash.style.opacity = '1';
+            mainContainer.classList.add('shake-intense');
+
+            setTimeout(() => {
+                flash.style.opacity = '0';
+            }, 200);
+
+            setTimeout(() => {
+                mainContainer.classList.remove('shake-intense');
+            }, 800);
         }
 
         function updateBloodOverlay(seconds) {
@@ -793,7 +913,6 @@
             socket = io();
 
             socket.on('connect', () => {
-                console.log("Connected to server via SocketIO. SID:", socket.id);
                 if (appState.status !== 'setup') {
                     socket.emit('sync_request', {
                         room_id: appState.roomId,
@@ -806,7 +925,6 @@
             });
 
             socket.on('sync_response', (data) => {
-                console.log("Sync response received:", data);
                 appState.escapeCode = data.escape_code || '';
 
                 if (data.room_status === 'waiting') {
@@ -847,6 +965,8 @@
             socket.on('room_reset', (data) => {
                 if (data.room_id === appState.roomId) {
                     clearInterval(timerInterval);
+                    clearInterval(punishmentTimerInterval);
+                    document.getElementById('scoldModal').classList.remove('active');
                     appState.currentQ = 1;
                     appState.continues = 0;
                     appState.status = 'waiting';
@@ -859,24 +979,30 @@
 
             socket.on('answer_result', (data) => {
                 if (data.is_correct) {
+                    // Correct Answer Flow -> Play sound, show commentary, enable Next button immediately
                     audioMgr.play('correct');
-                    if (appState.currentQ >= questionsData.length) {
-                        // All 10 questions completed -> Clear!
-                        appState.status = 'cleared';
-                        saveLocalState();
-                        sendClientStateUpdate();
-                        renderResultScreen();
-                    } else {
-                        appState.currentQ += 1;
-                        saveLocalState();
-                        sendClientStateUpdate();
-                        renderQuestion();
-                    }
+                    showCommentaryCard(true, data.commentary, () => {
+                        if (appState.currentQ >= questionsData.length) {
+                            appState.status = 'cleared';
+                            saveLocalState();
+                            sendClientStateUpdate();
+                            renderResultScreen();
+                        } else {
+                            appState.currentQ += 1;
+                            saveLocalState();
+                            sendClientStateUpdate();
+                            renderQuestion();
+                        }
+                    });
                 } else {
-                    // Wrong answer -> Red flash, scream, maid scold dialog
-                    triggerRedFlash();
+                    // Wrong Answer Flow -> First show commentary/explanation, then trigger scary maid punishment modal
                     audioMgr.play('scream');
-                    showMaidScoldModal(data.maid_scold);
+                    triggerScaryEffect();
+
+                    showCommentaryCard(false, data.commentary, () => {
+                        // Launch Scary Maid Punishment Modal with 5-second automatic countdown reset to Q1
+                        triggerScaryMaidPunishment(data.maid_scold);
+                    });
                 }
             });
         }
@@ -943,9 +1069,16 @@
             }, 1000);
         }
 
-        // --- QUESTION RENDERING ---
+        // --- QUESTION & COMMENTARY RENDERING ---
         function renderQuestion() {
             if (!questionsData || questionsData.length === 0) return;
+
+            // Hide commentary card
+            document.getElementById('commentaryCard').style.display = 'none';
+
+            // Enable options container
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.style.pointerEvents = 'auto';
 
             const qIndex = appState.currentQ - 1;
             const q = questionsData[qIndex];
@@ -956,7 +1089,6 @@
             document.getElementById('questionNumTag').innerText = `QUESTION ${String(q.id).padStart(2, '0')} / ${questionsData.length}`;
             document.getElementById('questionText').innerText = q.question;
 
-            const optionsContainer = document.getElementById('optionsContainer');
             optionsContainer.innerHTML = '';
 
             q.options.forEach(opt => {
@@ -969,6 +1101,9 @@
         }
 
         function handleSelectOption(questionId, selectedOptId) {
+            // Disable options during response evaluation
+            document.getElementById('optionsContainer').style.pointerEvents = 'none';
+
             if (socket) {
                 socket.emit('submit_answer', {
                     room_id: appState.roomId,
@@ -978,32 +1113,77 @@
             }
         }
 
-        // --- SCOLD MODAL LOGIC ---
-        function showMaidScoldModal(scoldMsg) {
-            document.getElementById('scoldText').innerText = `「${scoldMsg}」`;
-            document.getElementById('scoldModal').style.display = 'flex';
+        function showCommentaryCard(isCorrect, commentaryText, onNextCallback) {
+            const commentaryCard = document.getElementById('commentaryCard');
+            const headerEl = document.getElementById('commentaryHeader');
+            const bodyEl = document.getElementById('commentaryText');
+            const nextBtn = document.getElementById('btnNextQuestion');
+
+            if (isCorrect) {
+                headerEl.innerHTML = '💖 <b>正 解 ！ メイドからのメッセージ:</b>';
+                headerEl.style.color = 'var(--yami-pink)';
+                nextBtn.innerText = '次へ進む 💖';
+            } else {
+                headerEl.innerHTML = '💢 <b>不 正 解 … メイドの解説:</b>';
+                headerEl.style.color = 'var(--blood-red)';
+                nextBtn.innerText = 'お仕置きを受ける… 🔪';
+            }
+
+            bodyEl.innerText = commentaryText;
+            commentaryCard.style.display = 'block';
+
+            nextBtn.onclick = () => {
+                commentaryCard.style.display = 'none';
+                if (onNextCallback) onNextCallback();
+            };
         }
 
-        document.getElementById('btnRestartQ1').onclick = () => {
-            document.getElementById('scoldModal').style.display = 'none';
-            appState.continues += 1;
-            appState.currentQ = 1;
-            saveLocalState();
-            sendClientStateUpdate();
-            renderQuestion();
-        };
+        // --- SCARY MAID PUNISHMENT MODAL (5-SECOND AUTO RESET TO Q1) ---
+        function triggerScaryMaidPunishment(scoldMsg) {
+            const modal = document.getElementById('scoldModal');
+            const scoldTextEl = document.getElementById('scoldText');
+            const cdNumEl = document.getElementById('punishCountdownNum');
+
+            scoldTextEl.innerText = `「${scoldMsg}」`;
+            modal.classList.add('active');
+
+            triggerScaryEffect();
+
+            let left = 5;
+            cdNumEl.innerText = left;
+
+            clearInterval(punishmentTimerInterval);
+            punishmentTimerInterval = setInterval(() => {
+                left -= 1;
+                cdNumEl.innerText = left;
+
+                if (left <= 0) {
+                    clearInterval(punishmentTimerInterval);
+                    modal.classList.remove('active');
+
+                    // Reset to Question 1 and increment continue count
+                    appState.continues += 1;
+                    appState.currentQ = 1;
+                    saveLocalState();
+                    sendClientStateUpdate();
+                    renderQuestion();
+                }
+            }, 1000);
+        }
 
         // --- RESULT SCREEN RENDERING ---
         function renderResultScreen() {
             audioMgr.stopBgm();
             clearInterval(timerInterval);
+            clearInterval(punishmentTimerInterval);
+            document.getElementById('scoldModal').classList.remove('active');
+
             showScreen('screenResult');
 
             const isClear = (appState.status === 'cleared');
-            document.getElementById('resultHeader').innerText = isClear ? '✨ 脱 出 成 功 ✨' : '💀 ゲ ー ム オ ー バ ー 💀';
-            document.getElementById('resultHeader').style.color = isClear ? '#00ff66' : 'var(--neon-red)';
+            document.getElementById('resultHeader').innerText = isClear ? '✨ 脱 出 成 功 💖' : '💀 ゲ ー ム オ ー バ ー 💀';
+            document.getElementById('resultHeader').style.color = isClear ? '#00ff66' : 'var(--blood-red)';
 
-            // Calculate title from local title rules if server title not set
             let titleObj = null;
             if (titlesData) {
                 if (isClear) {
@@ -1036,7 +1216,6 @@
         window.addEventListener('DOMContentLoaded', async () => {
             loadLocalState();
 
-            // Fetch questions & titles
             try {
                 const [qRes, tRes] = await Promise.all([
                     fetch('/api/questions'),
@@ -1048,7 +1227,6 @@
                 console.error("Failed to load game config data:", e);
             }
 
-            // Populate initial input values from local state if present
             if (appState.roomId) {
                 document.getElementById('selectRoom').value = appState.roomId;
             }
@@ -1056,10 +1234,9 @@
                 document.getElementById('inputDeviceName').value = appState.deviceName;
             }
 
-            // Setup button click handler
             document.getElementById('btnEnter').onclick = () => {
                 const roomVal = document.getElementById('selectRoom').value;
-                const devVal = document.getElementById('inputDeviceName').value.trim() || `Player_${Math.floor(Math.random()*1000)}`;
+                const devVal = document.getElementById('inputDeviceName').value.trim() || `愛しのあなた_${Math.floor(Math.random()*1000)}`;
 
                 appState.roomId = roomVal;
                 appState.deviceName = devVal;
@@ -1085,7 +1262,6 @@
                 document.getElementById('waitRoomBadge').innerText = `ROOM: ${appState.roomId}`;
             };
 
-            // Auto connect if user had already completed setup
             if (appState.status !== 'setup') {
                 initSocket();
             }
