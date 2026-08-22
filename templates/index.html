@@ -404,7 +404,7 @@
             border-radius: 12px;
         }
 
-        /* --- COMMENTARY MODAL --- */
+        /* --- COMMENTARY MODAL FOR CORRECT ANSWER --- */
         .commentary-card {
             background: #ffffff;
             border: 4px solid var(--main-pink);
@@ -464,32 +464,32 @@
             100% { transform: scale(0.9); opacity: 0.8; }
         }
 
-        /* --- SCARY MAID PUNISHMENT MODAL (DRAMATIC DARK YANDERE SHIFT) --- */
-        .modal-backdrop {
+        /* --- WRONG ANSWER HORROR OVERLAY (3 SECONDS ANGER TEXT) --- */
+        .scary-anger-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
             background: rgba(15, 0, 5, 0.96);
-            z-index: 600;
+            z-index: 800;
             display: none;
             justify-content: center;
             align-items: center;
-            padding: 1rem;
+            padding: 1.5rem;
         }
 
-        .modal-backdrop.active {
+        .scary-anger-overlay.active {
             display: flex;
-            animation: pop-bounce 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pop-bounce 0.1s linear;
         }
 
-        .punishment-content {
-            background: radial-gradient(circle, #200008 0%, #0d0003 100%);
+        .anger-content {
+            background: radial-gradient(circle, #2a000a 0%, #0d0003 100%);
             border: 4px solid var(--blood-red);
-            box-shadow: 0 0 80px var(--blood-red), inset 0 0 30px var(--hot-pink);
-            padding: 2.5rem;
-            max-width: 620px;
+            box-shadow: 0 0 90px var(--blood-red), inset 0 0 40px var(--dark-yandere);
+            padding: 2.8rem;
+            max-width: 650px;
             width: 100%;
             text-align: center;
             border-radius: 28px;
@@ -497,7 +497,7 @@
         }
 
         .scary-avatar {
-            font-size: 4.2rem;
+            font-size: 4.5rem;
             margin-bottom: 1rem;
             animation: scary-shake 0.1s infinite;
         }
@@ -511,37 +511,17 @@
             100% { transform: translate(0, 0) scale(1) rotate(0deg); }
         }
 
-        .punishment-title {
-            color: var(--blood-red);
-            font-size: 2.1rem;
-            font-weight: 900;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 25px var(--blood-red);
-        }
-
         .scold-text {
-            font-size: 1.35rem;
-            color: #fff;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: #ffffff;
+            font-weight: 900;
             line-height: 1.7;
-            background: rgba(255, 0, 68, 0.2);
-            padding: 1.2rem;
-            border-left: 5px solid var(--blood-red);
-            border-radius: 12px;
-        }
-
-        .auto-timer-badge {
-            font-family: var(--font-mono);
-            font-size: 1.4rem;
-            color: #ff99cc;
-            background: #000;
-            border: 2px solid var(--blood-red);
-            padding: 0.6rem 1.5rem;
-            border-radius: 30px;
-            display: inline-block;
+            background: rgba(255, 0, 68, 0.25);
+            padding: 1.4rem;
+            border-left: 6px solid var(--blood-red);
+            border-radius: 14px;
             margin-top: 1rem;
-            box-shadow: 0 0 20px rgba(255, 0, 68, 0.5);
+            text-shadow: 0 0 10px var(--blood-red);
         }
 
         /* --- RESULT SCREEN --- */
@@ -625,17 +605,15 @@
         <div class="countdown-number" id="countdownNum">3</div>
     </div>
 
-    <!-- SCARY MAID PUNISHMENT MODAL (お仕置き演出) -->
-    <div class="modal-backdrop" id="scoldModal">
-        <div class="punishment-content">
+    <!-- WRONG ANSWER HORROR OVERLAY (3 SECONDS ANGER DISPLAY) -->
+    <div class="scary-anger-overlay" id="angerOverlay">
+        <div class="anger-content">
             <div class="scary-avatar">🔪🩸🖤😠💉</div>
-            <div class="punishment-title">💢 メ イ ド の お 仕 置 き 💢</div>
-            <div class="scold-text" id="scoldText">「は？どこ見てるの？私のこと全然見てないじゃない！！」</div>
-            <p style="color: #ff99cc; font-size: 1.05rem; margin-bottom: 1rem;">
-                愛の足りないご主人様にお仕置きだよ… 最初からやり直しね♡
-            </p>
-            <div class="auto-timer-badge">
-                ⏳ <span id="punishCountdownNum">5</span> 秒後に Q.1 へ戻ります…
+            <div style="color: var(--blood-red); font-size: 2.2rem; font-weight: 900; text-shadow: 0 0 20px var(--blood-red);">
+                💢 メ イ ド の 激 怒 💢
+            </div>
+            <div class="scold-text" id="angerScoldText">
+                「は？どこ見てるの？私のこと全然見てないじゃない！！」
             </div>
         </div>
     </div>
@@ -713,7 +691,7 @@
                 </div>
             </div>
 
-            <!-- COMMENTARY MODAL -->
+            <!-- COMMENTARY MODAL FOR CORRECT ANSWER -->
             <div class="commentary-card" id="commentaryCard">
                 <div class="commentary-header" id="commentaryHeader">
                     💖 メイドからのメッセージ
@@ -879,7 +857,7 @@
         const audioMgr = new HorrorAudioManager();
 
         // --- APP STATE & LOCALSTORAGE MANAGER ---
-        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v4';
+        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v5';
 
         let appState = {
             roomId: 'Room_1',
@@ -897,7 +875,7 @@
         let titlesData = null;
         let socket = null;
         let timerInterval = null;
-        let punishmentTimerInterval = null;
+        let angerTimeout = null;
         let remainingSeconds = 180;
 
         function loadLocalState() {
@@ -1013,8 +991,8 @@
             socket.on('room_reset', (data) => {
                 if (data.room_id === appState.roomId) {
                     clearInterval(timerInterval);
-                    clearInterval(punishmentTimerInterval);
-                    document.getElementById('scoldModal').classList.remove('active');
+                    clearTimeout(angerTimeout);
+                    document.getElementById('angerOverlay').classList.remove('active');
                     appState.currentQ = 1;
                     appState.continues = 0;
                     appState.status = 'waiting';
@@ -1027,8 +1005,9 @@
 
             socket.on('answer_result', (data) => {
                 if (data.is_correct) {
+                    // Correct answer -> Show commentary card with Next button
                     audioMgr.play('correct');
-                    showCommentaryCard(true, data.commentary, () => {
+                    showCommentaryCard(data.commentary, () => {
                         if (appState.currentQ >= questionsData.length) {
                             appState.status = 'cleared';
                             saveLocalState();
@@ -1042,12 +1021,10 @@
                         }
                     });
                 } else {
+                    // Wrong answer -> ONLY trigger dark horror anger overlay with maid_scold text for 3 seconds, then automatically switch to Q.1
                     audioMgr.play('scream');
                     triggerScaryEffect();
-
-                    showCommentaryCard(false, data.commentary, () => {
-                        triggerScaryMaidPunishment(data.maid_scold);
-                    });
+                    triggerWrongAnswerHorror(data.maid_scold);
                 }
             });
         }
@@ -1155,21 +1132,15 @@
             }
         }
 
-        function showCommentaryCard(isCorrect, commentaryText, onNextCallback) {
+        function showCommentaryCard(commentaryText, onNextCallback) {
             const commentaryCard = document.getElementById('commentaryCard');
             const headerEl = document.getElementById('commentaryHeader');
             const bodyEl = document.getElementById('commentaryText');
             const nextBtn = document.getElementById('btnNextQuestion');
 
-            if (isCorrect) {
-                headerEl.innerHTML = '💖 <b>正 解 ！ メイドからのメッセージ:</b>';
-                headerEl.style.color = 'var(--hot-pink)';
-                nextBtn.innerHTML = '<span>次へ進む</span> 💖';
-            } else {
-                headerEl.innerHTML = '💢 <b>不 正 解 … メイドの解説:</b>';
-                headerEl.style.color = 'var(--blood-red)';
-                nextBtn.innerHTML = '<span>お仕置きを受ける…</span> 🔪';
-            }
+            headerEl.innerHTML = '💖 <b>正 解 ！ メイドからのメッセージ:</b>';
+            headerEl.style.color = 'var(--hot-pink)';
+            nextBtn.innerHTML = '<span>次へ進む</span> 💖';
 
             bodyEl.innerText = commentaryText;
             commentaryCard.style.display = 'block';
@@ -1180,44 +1151,33 @@
             };
         }
 
-        // --- SCARY MAID PUNISHMENT MODAL (5-SECOND AUTO RESET TO Q1) ---
-        function triggerScaryMaidPunishment(scoldMsg) {
-            const modal = document.getElementById('scoldModal');
-            const scoldTextEl = document.getElementById('scoldText');
-            const cdNumEl = document.getElementById('punishCountdownNum');
+        // --- WRONG ANSWER HORROR DISPLAY (3 SECONDS ANGER -> AUTO RESET TO Q.1) ---
+        function triggerWrongAnswerHorror(scoldMsg) {
+            const angerOverlay = document.getElementById('angerOverlay');
+            const scoldTextEl = document.getElementById('angerScoldText');
 
             scoldTextEl.innerText = `「${scoldMsg}」`;
-            modal.classList.add('active');
+            angerOverlay.classList.add('active');
 
-            triggerScaryEffect();
+            clearTimeout(angerTimeout);
+            angerTimeout = setTimeout(() => {
+                angerOverlay.classList.remove('active');
 
-            let left = 5;
-            cdNumEl.innerText = left;
-
-            clearInterval(punishmentTimerInterval);
-            punishmentTimerInterval = setInterval(() => {
-                left -= 1;
-                cdNumEl.innerText = left;
-
-                if (left <= 0) {
-                    clearInterval(punishmentTimerInterval);
-                    modal.classList.remove('active');
-
-                    appState.continues += 1;
-                    appState.currentQ = 1;
-                    saveLocalState();
-                    sendClientStateUpdate();
-                    renderQuestion();
-                }
-            }, 1000);
+                // Auto reset to Question 1 and increment continue count
+                appState.continues += 1;
+                appState.currentQ = 1;
+                saveLocalState();
+                sendClientStateUpdate();
+                renderQuestion();
+            }, 3000); // Exactly 3 seconds
         }
 
         // --- RESULT SCREEN RENDERING ---
         function renderResultScreen() {
             audioMgr.stopBgm();
             clearInterval(timerInterval);
-            clearInterval(punishmentTimerInterval);
-            document.getElementById('scoldModal').classList.remove('active');
+            clearTimeout(angerTimeout);
+            document.getElementById('angerOverlay').classList.remove('active');
 
             showScreen('screenResult');
 
