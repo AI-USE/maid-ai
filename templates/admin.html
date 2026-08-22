@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>親機監視ダッシュボード - YAMI-KAWAII MATRIX MONITOR</title>
+    <title>親機監視ダッシュボード - 萌え萌えカフェ カウンターモニター</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Maru+Gothic:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
     <!-- Socket.IO CDN -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         :root {
-            --bg-black: #0b0207;
-            --pastel-pink: #ff99cc;
-            --hot-pink: #ff3385;
-            --cyber-green: #00ff66;
+            --bg-bright: #fff5f8;
+            --main-pink: #ff66aa;
+            --hot-pink: #ff1a75;
+            --soft-pastel: #ffe6f0;
+            --cyber-green: #00cc44;
             --cyber-red: #ff0044;
-            --border-pink: rgba(255, 153, 204, 0.4);
+            --border-pink: #ffb3d9;
+            --text-dark: #4a2c3a;
             --font-mono: 'Share Tech Mono', monospace;
             --font-kawaii: 'Zen Maru Gothic', sans-serif;
         }
@@ -29,8 +31,8 @@
         }
 
         body {
-            background-color: var(--bg-black);
-            color: var(--pastel-pink);
+            background-color: var(--bg-bright);
+            color: var(--text-dark);
             font-family: var(--font-kawaii);
             min-height: 100vh;
             padding: 1.5rem;
@@ -50,8 +52,8 @@
                 to bottom,
                 rgba(255,255,255,0),
                 rgba(255,255,255,0) 50%,
-                rgba(0, 0, 0, 0.35) 50%,
-                rgba(0, 0, 0, 0.35)
+                rgba(255, 182, 193, 0.15) 50%,
+                rgba(255, 182, 193, 0.15)
             );
             background-size: 100% 4px;
         }
@@ -60,18 +62,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 3px dotted var(--pastel-pink);
+            border-bottom: 3px dashed var(--main-pink);
             padding-bottom: 1rem;
             margin-bottom: 1.5rem;
-            text-shadow: 0 0 10px var(--hot-pink);
         }
 
         h1 {
             font-size: 1.8rem;
+            color: var(--hot-pink);
             letter-spacing: 1px;
             display: flex;
             align-items: center;
             gap: 0.8rem;
+            font-weight: 900;
         }
 
         .header-controls {
@@ -79,37 +82,28 @@
             gap: 1rem;
         }
 
-        .btn-cute-admin {
-            background: linear-gradient(135deg, var(--hot-pink), #800033);
-            border: 2px solid var(--pastel-pink);
+        .btn-moe-admin {
+            background: linear-gradient(135deg, var(--main-pink), var(--hot-pink));
+            border: 2px solid #ffffff;
             color: #fff;
-            padding: 0.6rem 1.4rem;
+            padding: 0.65rem 1.5rem;
             font-family: var(--font-kawaii);
             font-size: 0.95rem;
-            font-weight: bold;
+            font-weight: 900;
             cursor: pointer;
-            border-radius: 20px;
+            border-radius: 25px;
             transition: all 0.2s;
-            box-shadow: 0 0 12px rgba(255, 153, 204, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 26, 117, 0.3);
         }
 
-        .btn-cute-admin:hover {
-            background: var(--pastel-pink);
-            color: #000;
-            box-shadow: 0 0 20px var(--pastel-pink);
+        .btn-moe-admin:hover {
+            background: linear-gradient(135deg, var(--hot-pink), var(--main-pink));
+            box-shadow: 0 6px 18px rgba(255, 26, 117, 0.5);
             transform: scale(1.05);
         }
 
-        .btn-cute-danger {
-            background: linear-gradient(135deg, #cc0033, #66001a);
-            border-color: var(--cyber-red);
-            box-shadow: 0 0 12px rgba(255, 0, 68, 0.3);
-        }
-
-        .btn-cute-danger:hover {
-            background: var(--cyber-red);
-            color: #fff;
-            box-shadow: 0 0 20px var(--cyber-red);
+        .btn-moe-danger {
+            background: linear-gradient(135deg, #ff0044, #990026);
         }
 
         .rooms-grid {
@@ -119,23 +113,23 @@
         }
 
         .room-card {
-            background: rgba(22, 4, 15, 0.92);
-            border: 2px solid var(--border-pink);
+            background: #ffffff;
+            border: 3px solid var(--border-pink);
             padding: 1.3rem;
-            border-radius: 16px;
+            border-radius: 20px;
             position: relative;
-            box-shadow: 0 0 20px rgba(255, 153, 204, 0.15);
+            box-shadow: 0 6px 20px rgba(255, 102, 170, 0.2);
             transition: all 0.3s;
         }
 
         .room-card.status-playing {
             border-color: var(--hot-pink);
-            box-shadow: 0 0 25px rgba(255, 51, 133, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 26, 117, 0.35);
         }
 
         .room-card.status-finished {
             border-color: var(--cyber-red);
-            box-shadow: 0 0 25px rgba(255, 0, 68, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 0, 68, 0.35);
         }
 
         .room-title {
@@ -146,18 +140,20 @@
             border-bottom: 2px dashed var(--border-pink);
             padding-bottom: 0.5rem;
             margin-bottom: 0.8rem;
+            color: var(--hot-pink);
+            font-weight: 900;
         }
 
         .status-pill {
             font-size: 0.85rem;
-            padding: 0.25rem 0.7rem;
+            padding: 0.25rem 0.8rem;
             border-radius: 15px;
-            font-weight: bold;
+            font-weight: 900;
         }
 
-        .pill-waiting { background: #1a0a14; color: var(--pastel-pink); border: 1px solid var(--pastel-pink); }
-        .pill-playing { background: #330d22; color: #fff; border: 1px solid var(--hot-pink); }
-        .pill-finished { background: #33000d; color: var(--cyber-red); border: 1px solid var(--cyber-red); }
+        .pill-waiting { background: #ffe6f0; color: var(--hot-pink); border: 2px solid var(--border-pink); }
+        .pill-playing { background: var(--hot-pink); color: #fff; }
+        .pill-finished { background: var(--cyber-red); color: #fff; }
 
         .client-info-list {
             min-height: 120px;
@@ -165,12 +161,13 @@
         }
 
         .client-item {
-            background: rgba(0,0,0,0.6);
-            padding: 0.7rem;
+            background: #fff0f5;
+            padding: 0.75rem;
             margin-bottom: 0.5rem;
-            border-left: 4px solid var(--pastel-pink);
-            border-radius: 8px;
-            font-size: 0.9rem;
+            border-left: 5px solid var(--main-pink);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
         }
 
         .client-item.cleared { border-left-color: var(--cyber-green); }
@@ -184,14 +181,15 @@
 
         .room-timer {
             font-family: var(--font-mono);
-            font-size: 1.6rem;
+            font-size: 1.7rem;
             text-align: center;
             margin: 0.8rem 0;
-            background: #000;
+            background: #fff8fa;
             padding: 0.4rem;
-            border: 2px solid var(--border-pink);
-            border-radius: 12px;
+            border: 2px solid var(--main-pink);
+            border-radius: 14px;
             color: var(--hot-pink);
+            font-weight: bold;
         }
 
         .card-actions {
@@ -211,10 +209,10 @@
     <div class="scanline"></div>
 
     <header>
-        <h1><span>🎀 👁️ 💖</span> 狂愛ヤンデレメイド - 親機監視ダッシュボード</h1>
+        <h1><span>🎀 ☕ 💖</span> 萌え萌えメイドカフェ - カウンターモニター</h1>
         <div class="header-controls">
-            <button class="btn-cute-admin" id="btnStartAll">⚡ 一括スタート (10部屋)</button>
-            <button class="btn-cute-admin btn-cute-danger" id="btnResetAll">⚠️ 一括強制リセット</button>
+            <button class="btn-moe-admin" id="btnStartAll">⚡ 一括スタート (10部屋)</button>
+            <button class="btn-moe-admin btn-moe-danger" id="btnResetAll">⚠️ 一括強制リセット</button>
         </div>
     </header>
 
@@ -270,13 +268,13 @@
                 let clientsHtml = '';
 
                 if (clientsKeys.length === 0) {
-                    clientsHtml = `<div style="color: #775566; text-align: center; padding: 1.5rem 0;">( 未接続 )</div>`;
+                    clientsHtml = `<div style="color: #a06080; text-align: center; padding: 1.5rem 0; font-weight: bold;">( 未接続 )</div>`;
                 } else {
                     clientsKeys.forEach(sid => {
                         const c = room.clients[sid];
                         clientsHtml += `
                             <div class="client-item ${c.status}">
-                                <div style="display: flex; justify-content: space-between; font-weight: bold; color: #fff;">
+                                <div style="display: flex; justify-content: space-between; font-weight: 900; color: var(--hot-pink);">
                                     <span>👤 ${c.device_name}</span>
                                     <span>${c.status.toUpperCase()}</span>
                                 </div>
@@ -284,7 +282,7 @@
                                     <span>現在問題: Q.${c.current_q} / 10</span>
                                     <span>お仕置き: ${c.continues}回</span>
                                 </div>
-                                ${c.title ? `<div style="color: var(--pastel-pink); font-size: 0.8rem; margin-top: 0.3rem;">称号: ${c.title}</div>` : ''}
+                                ${c.title ? `<div style="color: var(--hot-pink); font-size: 0.8rem; margin-top: 0.3rem;">称号: ${c.title}</div>` : ''}
                             </div>
                         `;
                     });
@@ -298,7 +296,7 @@
 
                     <div class="room-timer" id="timer_${roomId}">${timerText}</div>
 
-                    <div style="font-size: 0.85rem; color: var(--pastel-pink); margin-bottom: 0.6rem; font-family: var(--font-mono);">
+                    <div style="font-size: 0.85rem; color: var(--hot-pink); margin-bottom: 0.6rem; font-family: var(--font-mono); font-weight: bold;">
                         脱出コード: <span style="color: var(--cyber-green); font-weight: bold;">${room.escape_code}</span>
                     </div>
 
@@ -307,8 +305,8 @@
                     </div>
 
                     <div class="card-actions">
-                        <button class="btn-cute-admin" onclick="startRoom('${roomId}')" ${room.status === 'playing' ? 'disabled' : ''}>スタート</button>
-                        <button class="btn-cute-admin btn-cute-danger" onclick="resetRoom('${roomId}')">強制リセット</button>
+                        <button class="btn-moe-admin" onclick="startRoom('${roomId}')" ${room.status === 'playing' ? 'disabled' : ''}>スタート</button>
+                        <button class="btn-moe-admin btn-moe-danger" onclick="resetRoom('${roomId}')">強制リセット</button>
                     </div>
                 `;
 

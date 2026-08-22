@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>狂愛ヤンデレメイドの館 - 病みかわいい×溺愛謎解き</title>
+    <title>萌え萌えキュン♡メイドカフェ謎解き - ヤンデレちゃんの秘密</title>
     <!-- Google Fonts: Zen Maru Gothic & Shippori Mincho -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,13 +12,15 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         :root {
-            --bg-dark-cute: #0d0208;
-            --pastel-pink: #ff99cc;
-            --hot-pink: #ff3385;
-            --soft-pink: #ffe6f2;
-            --yami-purple: #993366;
-            --blood-red: #ff0044;
-            --text-cute: #fff0f5;
+            --bg-bright-pink: #fff0f5;
+            --main-pink: #ff66aa;
+            --hot-pink: #ff1a75;
+            --soft-pastel: #ffe6f0;
+            --accent-yellow: #ffeb3b;
+            --dark-yandere: #8b0000;
+            --blood-red: #ff0033;
+            --text-dark: #4a2c3a;
+            --text-pink: #d91b60;
             --font-kawaii: 'Zen Maru Gothic', sans-serif;
             --font-serif: 'Shippori Mincho', serif;
             --font-mono: 'Share Tech Mono', monospace;
@@ -32,12 +34,12 @@
         }
 
         body {
-            background-color: var(--bg-dark-cute);
+            background-color: var(--bg-bright-pink);
             background-image:
-                radial-gradient(circle at 50% 50%, rgba(255, 153, 204, 0.12) 0%, transparent 60%),
-                radial-gradient(circle at 20% 20%, rgba(255, 51, 133, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(153, 51, 102, 0.2) 0%, transparent 50%);
-            color: var(--text-cute);
+                radial-gradient(circle at 50% 30%, rgba(255, 182, 193, 0.4) 0%, transparent 60%),
+                radial-gradient(circle at 10% 80%, rgba(255, 105, 180, 0.25) 0%, transparent 50%),
+                radial-gradient(circle at 90% 20%, rgba(255, 192, 203, 0.3) 0%, transparent 50%);
+            color: var(--text-dark);
             font-family: var(--font-kawaii);
             min-height: 100vh;
             overflow-x: hidden;
@@ -47,8 +49,8 @@
             position: relative;
         }
 
-        /* --- FLOATING CUTE HEARTS ANIMATION BACKGROUND --- */
-        .heart-bg {
+        /* --- FLOATING MOE SPARKLES & HEARTS --- */
+        .sparkle-bg {
             position: fixed;
             top: 0;
             left: 0;
@@ -59,33 +61,21 @@
             overflow: hidden;
         }
 
-        .floating-heart {
+        .floating-sparkle {
             position: absolute;
-            font-size: 1.5rem;
-            color: rgba(255, 153, 204, 0.25);
-            animation: float-up 10s linear infinite;
+            font-size: 1.8rem;
+            color: rgba(255, 102, 170, 0.5);
+            animation: float-moe 8s linear infinite;
         }
 
-        @keyframes float-up {
+        @keyframes float-moe {
             0% { transform: translateY(105vh) scale(0.8) rotate(0deg); opacity: 0; }
-            20% { opacity: 0.6; }
-            80% { opacity: 0.6; }
-            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.3) rotate(360deg); opacity: 0; }
         }
 
-        /* --- VISUAL EFFECTS: Vignette, Scanlines, Blood Drips --- */
-        .vignette {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 100;
-            box-shadow: inset 0 0 100px rgba(13, 2, 8, 0.85), inset 0 0 40px var(--hot-pink);
-            transition: box-shadow 0.5s ease;
-        }
-
+        /* --- VISUAL EFFECTS OVERLAYS --- */
         .scanline {
             position: fixed;
             top: 0;
@@ -98,11 +88,10 @@
                 to bottom,
                 rgba(255,255,255,0),
                 rgba(255,255,255,0) 50%,
-                rgba(0, 0, 0, 0.25) 50%,
-                rgba(0, 0, 0, 0.25)
+                rgba(255, 182, 193, 0.15) 50%,
+                rgba(255, 182, 193, 0.15)
             );
             background-size: 100% 4px;
-            opacity: 0.5;
         }
 
         .blood-overlay {
@@ -114,7 +103,7 @@
             pointer-events: none;
             z-index: 102;
             opacity: 0;
-            box-shadow: inset 0 0 90px var(--blood-red), inset 0 0 150px var(--hot-pink);
+            box-shadow: inset 0 0 120px var(--blood-red), inset 0 0 180px var(--dark-yandere);
             transition: opacity 0.3s ease;
         }
 
@@ -123,8 +112,8 @@
         }
 
         @keyframes pulse-blood {
-            0% { opacity: 0.3; transform: scale(1); }
-            100% { opacity: 0.85; transform: scale(1.02); }
+            0% { opacity: 0.35; transform: scale(1); }
+            100% { opacity: 0.9; transform: scale(1.02); }
         }
 
         .flash-scary {
@@ -146,10 +135,10 @@
 
         @keyframes glitch-shake {
             0% { transform: translate(0, 0) rotate(0deg); }
-            20% { transform: translate(-7px, 5px) rotate(-2deg); filter: invert(0.6); }
-            40% { transform: translate(7px, -5px) rotate(2deg); filter: invert(0); }
-            60% { transform: translate(-4px, -4px) rotate(-1deg); filter: invert(0.8); }
-            80% { transform: translate(5px, 4px) rotate(2deg); }
+            20% { transform: translate(-8px, 6px) rotate(-2deg); filter: invert(0.5); }
+            40% { transform: translate(8px, -6px) rotate(2deg); filter: invert(0); }
+            60% { transform: translate(-5px, -5px) rotate(-1deg); filter: invert(0.8); }
+            80% { transform: translate(6px, 4px) rotate(2deg); }
             100% { transform: translate(0, 0) rotate(0deg); }
         }
 
@@ -170,25 +159,25 @@
             justify-content: center;
             text-align: center;
             width: 100%;
-            animation: pop-appear 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pop-bounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .screen.active {
             display: flex;
         }
 
-        @keyframes pop-appear {
-            0% { opacity: 0; transform: scale(0.92); }
+        @keyframes pop-bounce {
+            0% { opacity: 0; transform: scale(0.9); }
             100% { opacity: 1; transform: scale(1); }
         }
 
-        /* --- CUTE HEADERS & BADGES --- */
+        /* --- BRIGHT MOE HEADERS & BADGES --- */
         h1 {
-            color: var(--pastel-pink);
-            font-size: 2.6rem;
+            color: var(--hot-pink);
+            font-size: 2.7rem;
             font-weight: 900;
-            text-shadow: 0 0 15px var(--hot-pink), 0 0 30px var(--yami-purple);
-            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px #fff, 0 0 15px rgba(255, 26, 117, 0.3);
+            letter-spacing: 1px;
             margin-bottom: 0.8rem;
         }
 
@@ -205,25 +194,25 @@
 
         h2 {
             font-size: 1.8rem;
-            color: var(--pastel-pink);
-            text-shadow: 0 0 12px var(--hot-pink);
+            color: var(--hot-pink);
+            text-shadow: 1px 1px 0px #fff;
             margin-bottom: 1rem;
         }
 
-        .cute-badge {
-            background: linear-gradient(135deg, rgba(255, 153, 204, 0.25), rgba(255, 51, 133, 0.4));
-            border: 2px solid var(--pastel-pink);
-            color: #fff;
-            padding: 0.4rem 1.2rem;
-            border-radius: 25px;
-            font-size: 0.95rem;
-            font-weight: bold;
+        .moe-badge {
+            background: #ffffff;
+            border: 3px solid var(--main-pink);
+            color: var(--hot-pink);
+            padding: 0.45rem 1.4rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 900;
             display: inline-block;
-            margin-bottom: 1rem;
-            box-shadow: 0 0 15px rgba(255, 153, 204, 0.3);
+            margin-bottom: 1.2rem;
+            box-shadow: 0 4px 15px rgba(255, 102, 170, 0.3);
         }
 
-        /* --- CUTE INPUTS & BUTTONS --- */
+        /* --- BRIGHT MOE INPUTS & BUTTONS --- */
         .input-group {
             margin: 1.2rem 0;
             display: flex;
@@ -235,58 +224,58 @@
 
         label {
             font-size: 1.15rem;
-            color: var(--pastel-pink);
+            color: var(--text-pink);
             text-align: left;
-            font-weight: bold;
+            font-weight: 900;
         }
 
         select, input[type="text"] {
-            background-color: rgba(26, 5, 18, 0.9);
-            border: 2px solid var(--pastel-pink);
-            color: var(--text-cute);
+            background-color: #ffffff;
+            border: 3px solid var(--main-pink);
+            color: var(--text-dark);
             padding: 0.85rem 1.2rem;
             font-size: 1.1rem;
             font-family: var(--font-kawaii);
             font-weight: bold;
             outline: none;
-            border-radius: 16px;
+            border-radius: 20px;
             transition: all 0.3s;
-            box-shadow: inset 0 0 10px rgba(255, 153, 204, 0.15);
+            box-shadow: 0 4px 10px rgba(255, 102, 170, 0.15);
         }
 
         select:focus, input[type="text"]:focus {
             border-color: var(--hot-pink);
-            box-shadow: 0 0 20px var(--hot-pink);
+            box-shadow: 0 0 15px var(--hot-pink);
         }
 
-        .btn-cute {
-            background: linear-gradient(135deg, var(--hot-pink), var(--yami-purple));
+        .btn-moe {
+            background: linear-gradient(135deg, #ff66aa, #ff1a75);
             color: #ffffff;
-            border: 3px solid var(--pastel-pink);
-            padding: 0.95rem 2.5rem;
-            font-size: 1.25rem;
+            border: 3px solid #ffffff;
+            padding: 1rem 2.8rem;
+            font-size: 1.3rem;
             font-family: var(--font-kawaii);
             font-weight: 900;
             cursor: pointer;
-            border-radius: 35px;
+            border-radius: 40px;
             letter-spacing: 1px;
-            box-shadow: 0 0 25px rgba(255, 51, 133, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 20px rgba(255, 26, 117, 0.4);
             transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             margin-top: 1rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
 
-        .btn-cute:hover {
-            background: linear-gradient(135deg, var(--pastel-pink), var(--hot-pink));
-            color: #000;
-            box-shadow: 0 0 35px var(--pastel-pink);
-            transform: scale(1.05) translateY(-3px);
+        .btn-moe:hover {
+            background: linear-gradient(135deg, #ff1a75, #ff66aa);
+            box-shadow: 0 8px 25px rgba(255, 26, 117, 0.6);
+            transform: scale(1.06) translateY(-3px);
         }
 
-        .btn-cute:active {
+        .btn-moe:active {
             transform: scale(0.98);
         }
 
@@ -296,53 +285,53 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 3px dotted var(--pastel-pink);
+            border-bottom: 3px dashed var(--main-pink);
             padding-bottom: 0.8rem;
             margin-bottom: 1.5rem;
         }
 
         .room-badge {
             font-family: var(--font-mono);
-            background: linear-gradient(135deg, var(--yami-purple), #33001a);
-            border: 2px solid var(--pastel-pink);
-            color: var(--pastel-pink);
+            background: #ffffff;
+            border: 2px solid var(--main-pink);
+            color: var(--hot-pink);
             padding: 0.4rem 1rem;
             border-radius: 20px;
             font-size: 0.95rem;
-            font-weight: bold;
+            font-weight: 900;
+            box-shadow: 0 2px 8px rgba(255, 102, 170, 0.2);
         }
 
         .timer-box {
             font-family: var(--font-mono);
             font-size: 2.3rem;
             color: var(--hot-pink);
-            text-shadow: 0 0 15px var(--hot-pink);
-            background: rgba(15, 2, 8, 0.9);
+            background: #ffffff;
             padding: 0.3rem 1.3rem;
-            border: 2px solid var(--pastel-pink);
-            border-radius: 16px;
-            box-shadow: 0 0 20px rgba(255, 51, 133, 0.3);
+            border: 3px solid var(--main-pink);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(255, 102, 170, 0.3);
+            font-weight: bold;
         }
 
         .stats-box {
             font-size: 1rem;
-            color: #fff;
-            font-weight: bold;
+            color: var(--text-dark);
+            font-weight: 900;
         }
 
         .stats-box span {
-            color: var(--pastel-pink);
-            font-size: 1.2rem;
-            text-shadow: 0 0 8px var(--pastel-pink);
+            color: var(--hot-pink);
+            font-size: 1.25rem;
         }
 
         /* --- QUESTION & OPTIONS CARD --- */
         .question-card {
-            background: rgba(22, 4, 15, 0.92);
-            border: 3px solid var(--pastel-pink);
-            box-shadow: 0 0 40px rgba(255, 153, 204, 0.3), inset 0 0 20px rgba(255, 51, 133, 0.15);
+            background: #ffffff;
+            border: 4px solid var(--main-pink);
+            box-shadow: 0 8px 30px rgba(255, 102, 170, 0.25);
             padding: 2.2rem;
-            border-radius: 24px;
+            border-radius: 28px;
             width: 100%;
             text-align: left;
             margin-bottom: 1.5rem;
@@ -350,25 +339,26 @@
         }
 
         .question-card::before {
-            content: '🎀 💖 🎀';
+            content: '🎀 💖 萌え萌えキュン 💖 🎀';
             position: absolute;
-            top: -16px;
+            top: -18px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--bg-dark-cute);
-            padding: 0 12px;
+            background: var(--bg-bright-pink);
+            padding: 0 16px;
             font-size: 1rem;
-            color: var(--pastel-pink);
+            color: var(--hot-pink);
+            font-weight: 900;
         }
 
         .question-title {
             font-size: 1.4rem;
             margin-bottom: 1.6rem;
-            color: #ffffff;
+            color: var(--text-dark);
             line-height: 1.7;
-            border-left: 5px solid var(--hot-pink);
+            border-left: 6px solid var(--hot-pink);
             padding-left: 1rem;
-            font-weight: 700;
+            font-weight: 900;
         }
 
         .options-grid {
@@ -379,58 +369,58 @@
         }
 
         .option-btn {
-            background: rgba(35, 8, 24, 0.85);
-            border: 2px solid rgba(255, 153, 204, 0.4);
-            color: var(--text-cute);
-            padding: 1rem 1.3rem;
+            background: #fff8fa;
+            border: 3px solid var(--soft-pastel);
+            color: var(--text-dark);
+            padding: 1.05rem 1.3rem;
             text-align: left;
             font-size: 1.15rem;
             font-family: var(--font-kawaii);
-            font-weight: 700;
+            font-weight: 900;
             cursor: pointer;
-            border-radius: 18px;
+            border-radius: 20px;
             transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             align-items: center;
+            box-shadow: 0 3px 10px rgba(255, 102, 170, 0.1);
         }
 
         .option-btn:hover {
-            border-color: var(--pastel-pink);
-            background: linear-gradient(135deg, rgba(255, 51, 133, 0.4), rgba(153, 51, 102, 0.6));
-            color: #fff;
-            box-shadow: 0 0 20px rgba(255, 153, 204, 0.6);
+            border-color: var(--main-pink);
+            background: linear-gradient(135deg, #ffe6f0, #ffb3d9);
+            color: var(--hot-pink);
+            box-shadow: 0 6px 20px rgba(255, 102, 170, 0.35);
             transform: translateX(8px) scale(1.01);
         }
 
         .option-key {
             font-family: var(--font-mono);
             font-weight: bold;
-            color: var(--pastel-pink);
+            color: #ffffff;
             margin-right: 1rem;
             font-size: 1.25rem;
-            background: rgba(255, 51, 133, 0.3);
-            padding: 0.25rem 0.7rem;
-            border-radius: 10px;
-            border: 1px solid var(--pastel-pink);
+            background: var(--main-pink);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
         }
 
-        /* --- COMMENTARY / EXPLANATION MODAL --- */
+        /* --- COMMENTARY MODAL --- */
         .commentary-card {
-            background: rgba(25, 3, 16, 0.96);
-            border: 3px solid var(--pastel-pink);
-            border-radius: 20px;
+            background: #ffffff;
+            border: 4px solid var(--main-pink);
+            border-radius: 24px;
             padding: 1.8rem;
             margin-top: 1.2rem;
             text-align: left;
-            box-shadow: 0 0 40px rgba(255, 153, 204, 0.4);
+            box-shadow: 0 8px 30px rgba(255, 102, 170, 0.3);
             display: none;
-            animation: pop-appear 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pop-bounce 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .commentary-header {
             font-size: 1.3rem;
             font-weight: 900;
-            color: var(--pastel-pink);
+            color: var(--hot-pink);
             margin-bottom: 0.9rem;
             display: flex;
             align-items: center;
@@ -438,10 +428,11 @@
         }
 
         .commentary-body {
-            font-size: 1.18rem;
+            font-size: 1.2rem;
             line-height: 1.7;
-            color: #fff;
+            color: var(--text-dark);
             margin-bottom: 1.4rem;
+            font-weight: 700;
         }
 
         /* --- COUNTDOWN OVERLAY --- */
@@ -451,7 +442,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(10, 1, 6, 0.96);
+            background: rgba(255, 240, 245, 0.96);
             z-index: 500;
             display: none;
             flex-direction: column;
@@ -462,8 +453,8 @@
         .countdown-number {
             font-size: 10rem;
             font-family: var(--font-mono);
-            color: var(--pastel-pink);
-            text-shadow: 0 0 40px var(--hot-pink);
+            color: var(--hot-pink);
+            text-shadow: 0 0 30px rgba(255, 26, 117, 0.4);
             animation: cd-pop 0.9s infinite;
         }
 
@@ -473,7 +464,7 @@
             100% { transform: scale(0.9); opacity: 0.8; }
         }
 
-        /* --- SCARY MAID PUNISHMENT MODAL --- */
+        /* --- SCARY MAID PUNISHMENT MODAL (DRAMATIC DARK YANDERE SHIFT) --- */
         .modal-backdrop {
             position: fixed;
             top: 0;
@@ -490,7 +481,7 @@
 
         .modal-backdrop.active {
             display: flex;
-            animation: pop-appear 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pop-bounce 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .punishment-content {
@@ -543,7 +534,7 @@
         .auto-timer-badge {
             font-family: var(--font-mono);
             font-size: 1.4rem;
-            color: var(--pastel-pink);
+            color: #ff99cc;
             background: #000;
             border: 2px solid var(--blood-red);
             padding: 0.6rem 1.5rem;
@@ -555,38 +546,40 @@
 
         /* --- RESULT SCREEN --- */
         .result-card {
-            background: rgba(25, 4, 18, 0.95);
-            border: 4px solid var(--pastel-pink);
+            background: #ffffff;
+            border: 4px solid var(--main-pink);
             padding: 2.8rem;
             border-radius: 28px;
-            box-shadow: 0 0 60px rgba(255, 153, 204, 0.5);
+            box-shadow: 0 8px 35px rgba(255, 102, 170, 0.4);
             width: 100%;
             max-width: 660px;
         }
 
         .title-badge {
             font-size: 2.2rem;
-            color: var(--pastel-pink);
-            text-shadow: 0 0 25px var(--hot-pink);
+            color: var(--hot-pink);
+            text-shadow: 0 0 15px rgba(255, 26, 117, 0.3);
             margin: 1.2rem 0;
             font-weight: 900;
         }
 
         .comment-box {
             font-size: 1.2rem;
-            color: #eee;
-            background: rgba(0,0,0,0.75);
+            color: var(--text-dark);
+            background: #fff8fa;
+            border: 2px solid var(--soft-pastel);
             padding: 1.6rem;
-            border-left: 5px solid var(--pastel-pink);
+            border-left: 6px solid var(--hot-pink);
             margin: 1.5rem 0;
             text-align: left;
             line-height: 1.8;
             border-radius: 16px;
+            font-weight: 700;
         }
 
         .escape-code-box {
             background: #000;
-            border: 3px dashed var(--pastel-pink);
+            border: 3px dashed var(--main-pink);
             padding: 1.2rem;
             margin: 1.5rem 0;
             font-family: var(--font-mono);
@@ -602,33 +595,32 @@
         }
 
         @keyframes pulse-txt {
-            0% { opacity: 0.4; }
+            0% { opacity: 0.5; }
             100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <!-- FLOATING HEARTS BACKGROUND -->
-    <div class="heart-bg" id="heartBg">
-        <div class="floating-heart" style="left: 10%; animation-delay: 0s;">💖</div>
-        <div class="floating-heart" style="left: 25%; animation-delay: 2s;">🎀</div>
-        <div class="floating-heart" style="left: 40%; animation-delay: 4s;">💕</div>
-        <div class="floating-heart" style="left: 60%; animation-delay: 1s;">✨</div>
-        <div class="floating-heart" style="left: 75%; animation-delay: 3s;">💖</div>
-        <div class="floating-heart" style="left: 90%; animation-delay: 5s;">🩸</div>
+    <!-- FLOATING SPARKLES & HEARTS BACKGROUND -->
+    <div class="sparkle-bg">
+        <div class="floating-sparkle" style="left: 10%; animation-delay: 0s;">💖</div>
+        <div class="floating-sparkle" style="left: 25%; animation-delay: 2s;">🎀</div>
+        <div class="floating-sparkle" style="left: 40%; animation-delay: 4s;">✨</div>
+        <div class="floating-sparkle" style="left: 60%; animation-delay: 1s;">💕</div>
+        <div class="floating-sparkle" style="left: 75%; animation-delay: 3s;">💖</div>
+        <div class="floating-sparkle" style="left: 90%; animation-delay: 5s;">🌸</div>
     </div>
 
     <!-- VISUAL EFFECTS OVERLAYS -->
-    <div class="vignette"></div>
     <div class="scanline"></div>
     <div class="blood-overlay" id="bloodOverlay"></div>
     <div class="flash-scary" id="flashScary"></div>
 
     <!-- COUNTDOWN OVERLAY -->
     <div class="countdown-overlay" id="countdownOverlay">
-        <div style="font-size: 1.8rem; color: var(--pastel-pink); margin-bottom: 1rem;">
-            🎀 狂愛の館の扉が開くよ… 💖
+        <div style="font-size: 1.8rem; color: var(--hot-pink); font-weight: 900; margin-bottom: 1rem;">
+            🎀 萌え萌えメイドカフェの扉が開くよ… 💖
         </div>
         <div class="countdown-number" id="countdownNum">3</div>
     </div>
@@ -639,8 +631,8 @@
             <div class="scary-avatar">🔪🩸🖤😠💉</div>
             <div class="punishment-title">💢 メ イ ド の お 仕 置 き 💢</div>
             <div class="scold-text" id="scoldText">「は？どこ見てるの？私のこと全然見てないじゃない！！」</div>
-            <p style="color: var(--pastel-pink); font-size: 1.05rem; margin-bottom: 1rem;">
-                愛の足りないあなたにお仕置きだよ… 最初からやり直しね♡
+            <p style="color: #ff99cc; font-size: 1.05rem; margin-bottom: 1rem;">
+                愛の足りないご主人様にお仕置きだよ… 最初からやり直しね♡
             </p>
             <div class="auto-timer-badge">
                 ⏳ <span id="punishCountdownNum">5</span> 秒後に Q.1 へ戻ります…
@@ -653,15 +645,15 @@
 
         <!-- SCREEN 1: ROOM SETUP & AUDIO UNLOCK -->
         <div class="screen active" id="screenSetup">
-            <div class="cute-badge">🎀 狂愛・溺愛・病みかわいい謎解き 💖</div>
-            <h1>ヤンデレメイドの館 <span class="heart">♥</span></h1>
-            <p style="color: var(--pastel-pink); line-height: 1.8; margin-bottom: 1.5rem; font-size: 1.15rem;">
-                あなたは私の愛から逃げられると思ってるの…？<br>
-                10の問いに正しく答えて、私の重すぎる愛を証明してみてね♡
+            <div class="moe-badge">🎀 萌え萌えキュン♡メイド謎解きカフェ 💖</div>
+            <h1>ヤンデレメイドカフェ <span class="heart">♥</span></h1>
+            <p style="color: var(--text-dark); line-height: 1.8; margin-bottom: 1.5rem; font-size: 1.15rem; font-weight: 700;">
+                ご主人様、私のこと本当に大好きだよね…？<br>
+                全10問の質問に答えて、私への愛を証明してね♡
             </p>
 
             <div class="input-group">
-                <label for="selectRoom">🎀 部屋番号 (端末指定)</label>
+                <label for="selectRoom">🎀 お部屋番号 (端末指定)</label>
                 <select id="selectRoom">
                     <option value="Room_1">第 1 部屋 (Room_1)</option>
                     <option value="Room_2">第 2 部屋 (Room_2)</option>
@@ -677,23 +669,23 @@
             </div>
 
             <div class="input-group">
-                <label for="inputDeviceName">💖 プレイヤー名 / 端末名</label>
-                <input type="text" id="inputDeviceName" placeholder="例: 愛しのあなた" maxlength="15">
+                <label for="inputDeviceName">💖 ご主人様のお名前 / 端末名</label>
+                <input type="text" id="inputDeviceName" placeholder="例: 愛すご主人様" maxlength="15">
             </div>
 
-            <button class="btn-cute" id="btnEnter"><span>館に入る (音声を有効化)</span> 💖</button>
-            <p style="color: #aa7799; font-size: 0.88rem; margin-top: 1.2rem;">※クリックでオーディオ権限を取得します</p>
+            <button class="btn-moe" id="btnEnter"><span>カフェに入る (音声を有効化)</span> 💖</button>
+            <p style="color: #a06080; font-size: 0.88rem; margin-top: 1.2rem; font-weight: bold;">※クリックでオーディオ権限を取得します</p>
         </div>
 
         <!-- SCREEN 2: WAITING FOR ADMIN START -->
         <div class="screen" id="screenWait">
-            <div class="cute-badge">🔒 WAITING ROOM</div>
-            <h2 class="pulse-text">愛しのあなたの到着を待っています… 💖</h2>
-            <p style="color: var(--pastel-pink); font-size: 1.1rem;">親機（サーバー）からのスタート合図でゲームが始まります。</p>
+            <div class="moe-badge">🔒 WAITING ROOM</div>
+            <h2 class="pulse-text">愛すご主人様の到着をお待ちしております… 💖</h2>
+            <p style="color: var(--text-dark); font-size: 1.1rem; font-weight: 700;">親機（カウンター）からのスタート合図で始まります。</p>
             <div class="room-badge" id="waitRoomBadge" style="font-size: 1.2rem; padding: 0.8rem 2rem; margin-top: 1.2rem;">
                 ROOM: -
             </div>
-            <p style="color: #aa7799; font-size: 0.88rem; margin-top: 2rem;">※ブラウザを再読み込みしても、状態は自動で復元されます。</p>
+            <p style="color: #a06080; font-size: 0.88rem; margin-top: 2rem; font-weight: bold;">※ブラウザを再読み込みしても、状態は自動で復元されます。</p>
         </div>
 
         <!-- SCREEN 3: GAME PLAY -->
@@ -701,7 +693,7 @@
             <div class="game-header">
                 <div>
                     <span class="room-badge" id="gameRoomBadge">Room_1</span>
-                    <span id="gamePlayerName" style="margin-left: 0.8rem; font-weight: bold; color: var(--pastel-pink);">-</span>
+                    <span id="gamePlayerName" style="margin-left: 0.8rem; font-weight: 900; color: var(--hot-pink);">-</span>
                 </div>
                 <div class="timer-box" id="timerDisplay">03:00</div>
                 <div class="stats-box">
@@ -710,7 +702,7 @@
             </div>
 
             <div class="question-card">
-                <div style="font-family: var(--font-mono); color: var(--pastel-pink); font-size: 1.15rem; margin-bottom: 0.5rem;" id="questionNumTag">
+                <div style="font-family: var(--font-mono); color: var(--hot-pink); font-size: 1.15rem; margin-bottom: 0.5rem; font-weight: bold;" id="questionNumTag">
                     QUESTION 01 / 10
                 </div>
                 <div class="question-title" id="questionText">
@@ -721,7 +713,7 @@
                 </div>
             </div>
 
-            <!-- COMMENTARY / EXPLANATION MODAL (For correct answer & before punishment) -->
+            <!-- COMMENTARY MODAL -->
             <div class="commentary-card" id="commentaryCard">
                 <div class="commentary-header" id="commentaryHeader">
                     💖 メイドからのメッセージ
@@ -729,7 +721,7 @@
                 <div class="commentary-body" id="commentaryText">
                     -
                 </div>
-                <button class="btn-cute" id="btnNextQuestion" style="margin-top: 0; width: 100%;"><span>次へ進む</span> 💖</button>
+                <button class="btn-moe" id="btnNextQuestion" style="margin-top: 0; width: 100%;"><span>次へ進む</span> 💖</button>
             </div>
         </div>
 
@@ -738,24 +730,24 @@
             <div class="result-card">
                 <h2 id="resultHeader">脱出結果</h2>
 
-                <div style="color: var(--pastel-pink); font-size: 1.15rem;">獲得称号</div>
+                <div style="color: var(--text-pink); font-size: 1.15rem; font-weight: 900;">獲得称号</div>
                 <div class="title-badge" id="resultTitle">共犯者（ヤンデレマスター）</div>
 
                 <div class="comment-box">
-                    <div style="color: var(--pastel-pink); font-weight: bold; margin-bottom: 0.5rem;">
+                    <div style="color: var(--hot-pink); font-weight: 900; margin-bottom: 0.5rem;">
                         メイドからのささやき:
                     </div>
                     <p id="resultComment" style="margin-bottom: 0;">「……」</p>
                 </div>
 
                 <div id="escapeCodeContainer" style="display: none;">
-                    <div style="color: var(--pastel-pink); font-size: 1rem;">館の脱出認証コード:</div>
+                    <div style="color: var(--text-pink); font-size: 1rem; font-weight: 900;">カフェ脱出認証コード:</div>
                     <div class="escape-code-box" id="escapeCodeDisplay">XXXXXX</div>
                 </div>
 
-                <div style="display: flex; justify-content: space-around; margin-top: 1.5rem; color: #ccc; font-family: var(--font-mono);">
-                    <div>到達問題: <span id="resReachedQ" style="color: var(--pastel-pink); font-weight: bold;">10</span> / 10</div>
-                    <div>お仕置き回数: <span id="resContinues" style="color: var(--pastel-pink); font-weight: bold;">0</span> 回</div>
+                <div style="display: flex; justify-content: space-around; margin-top: 1.5rem; color: var(--text-dark); font-family: var(--font-mono); font-weight: bold;">
+                    <div>到達問題: <span id="resReachedQ" style="color: var(--hot-pink); font-weight: bold;">10</span> / 10</div>
+                    <div>お仕置き回数: <span id="resContinues" style="color: var(--hot-pink); font-weight: bold;">0</span> 回</div>
                 </div>
             </div>
         </div>
@@ -887,11 +879,11 @@
         const audioMgr = new HorrorAudioManager();
 
         // --- APP STATE & LOCALSTORAGE MANAGER ---
-        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v3';
+        const LOCAL_STORAGE_KEY = 'yandere_escape_client_state_v4';
 
         let appState = {
             roomId: 'Room_1',
-            deviceName: '愛しのあなた',
+            deviceName: '愛すご主人様',
             currentQ: 1,
             continues: 0,
             status: 'setup',
@@ -1171,7 +1163,7 @@
 
             if (isCorrect) {
                 headerEl.innerHTML = '💖 <b>正 解 ！ メイドからのメッセージ:</b>';
-                headerEl.style.color = 'var(--pastel-pink)';
+                headerEl.style.color = 'var(--hot-pink)';
                 nextBtn.innerHTML = '<span>次へ進む</span> 💖';
             } else {
                 headerEl.innerHTML = '💢 <b>不 正 解 … メイドの解説:</b>';
@@ -1231,7 +1223,7 @@
 
             const isClear = (appState.status === 'cleared');
             document.getElementById('resultHeader').innerText = isClear ? '✨ 脱 出 成 功 💖' : '💀 ゲ ー ム オ ー バ ー 💀';
-            document.getElementById('resultHeader').style.color = isClear ? '#00ff66' : 'var(--blood-red)';
+            document.getElementById('resultHeader').style.color = isClear ? '#00cc44' : 'var(--blood-red)';
 
             let titleObj = null;
             if (titlesData) {
@@ -1285,7 +1277,7 @@
 
             document.getElementById('btnEnter').onclick = () => {
                 const roomVal = document.getElementById('selectRoom').value;
-                const devVal = document.getElementById('inputDeviceName').value.trim() || `愛しのあなた_${Math.floor(Math.random()*1000)}`;
+                const devVal = document.getElementById('inputDeviceName').value.trim() || `愛すご主人様_${Math.floor(Math.random()*1000)}`;
 
                 appState.roomId = roomVal;
                 appState.deviceName = devVal;

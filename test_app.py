@@ -33,12 +33,12 @@ class YandereAppTestCase(unittest.TestCase):
     def test_admin_route(self):
         res = self.app.get('/admin')
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'MATRIX MONITOR', res.data)
+        self.assertIn('カウンターモニター'.encode('utf-8'), res.data)
 
     def test_index_route(self):
         res = self.app.get('/')
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'Zen Maru Gothic', res.data)
+        self.assertIn('Zen Maru Gothic'.encode('utf-8'), res.data)
 
     def test_socketio_connection(self):
         client = socketio.test_client(app)

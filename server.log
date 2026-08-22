@@ -1,25 +1,25 @@
  * Restarting with stat
  * Debugger is active!
  * Debugger PIN: 118-483-853
-127.0.0.1 - - [2026-08-22 21:59:37] "GET / HTTP/1.1" 200 49975 0.025555
-127.0.0.1 - - [2026-08-22 21:59:38] "GET /api/questions HTTP/1.1" 200 9428 0.001662
-127.0.0.1 - - [2026-08-22 21:59:38] "GET /api/titles HTTP/1.1" 200 2301 0.000615
-127.0.0.1 - - [2026-08-22 21:59:38] "GET /socket.io/?EIO=4&transport=polling&t=Q0hV91J HTTP/1.1" 200 276 0.000937
-127.0.0.1 - - [2026-08-22 21:59:38] "GET /static/audio/heartbeat_slow.mp3 HTTP/1.1" 404 331 0.003099
-127.0.0.1 - - [2026-08-22 21:59:38] "POST /socket.io/?EIO=4&transport=polling&t=Q0hV93Q&sid=E0J7t1_mKxZ8v0CgAAAA HTTP/1.1" 200 195 0.002086
-127.0.0.1 - - [2026-08-22 21:59:38] "GET /socket.io/?EIO=4&transport=polling&t=Q0hV93X&sid=E0J7t1_mKxZ8v0CgAAAA HTTP/1.1" 200 471 0.000585
-127.0.0.1 - - [2026-08-22 21:59:39] "GET /static/audio/heartbeat_slow.mp3 HTTP/1.1" 404 331 0.001011
-127.0.0.1 - - [2026-08-22 21:59:39] "GET /static/audio/heartbeat_slow.mp3 HTTP/1.1" 404 331 0.000809
-127.0.0.1 - - [2026-08-22 21:59:39] "GET /admin HTTP/1.1" 200 12733 0.004138
-127.0.0.1 - - [2026-08-22 21:59:39] "GET /socket.io/?EIO=4&transport=polling&t=Q0hV97J HTTP/1.1" 200 276 0.000376
-127.0.0.1 - - [2026-08-22 21:59:39] "POST /socket.io/?EIO=4&transport=polling&t=Q0hV99J&sid=GsK3vwdnbRVe53MsAAAC HTTP/1.1" 200 195 0.001472
-127.0.0.1 - - [2026-08-22 21:59:39] "GET /socket.io/?EIO=4&transport=polling&t=Q0hV99N&sid=GsK3vwdnbRVe53MsAAAC HTTP/1.1" 200 576 0.000430
-127.0.0.1 - - [2026-08-22 21:59:39] "GET /socket.io/?EIO=4&transport=polling&t=Q0hV9A7&sid=GsK3vwdnbRVe53MsAAAC HTTP/1.1" 200 157 0.000333
-127.0.0.1 - - [2026-08-22 21:59:40] "GET /static/audio/countdown.mp3 HTTP/1.1" 404 331 0.000971
-127.0.0.1 - - [2026-08-22 21:59:41] "GET /static/audio/countdown.mp3 HTTP/1.1" 404 331 0.000910
-127.0.0.1 - - [2026-08-22 21:59:42] "GET /static/audio/countdown.mp3 HTTP/1.1" 404 331 0.001478
-127.0.0.1 - - [2026-08-22 21:59:43] "GET /static/audio/bgm_horror.mp3 HTTP/1.1" 404 331 0.000938
-127.0.0.1 - - [2026-08-22 21:59:43] "GET /static/audio/correct.mp3 HTTP/1.1" 404 331 0.000870
-127.0.0.1 - - [2026-08-22 21:59:44] "GET /socket.io/?EIO=4&transport=websocket&sid=E0J7t1_mKxZ8v0CgAAAA HTTP/1.1" 200 - 5.470273
-127.0.0.1 - - [2026-08-22 21:59:44] "GET /socket.io/?EIO=4&transport=websocket&sid=GsK3vwdnbRVe53MsAAAC HTTP/1.1" 200 208 5.076803
+127.0.0.1 - - [2026-08-22 22:15:47] "GET / HTTP/1.1" 200 49616 0.028267
+127.0.0.1 - - [2026-08-22 22:15:48] "GET /api/questions HTTP/1.1" 200 9428 0.004325
+127.0.0.1 - - [2026-08-22 22:15:48] "GET /api/titles HTTP/1.1" 200 2301 0.000859
+127.0.0.1 - - [2026-08-22 22:15:48] "GET /socket.io/?EIO=4&transport=polling&t=Q0hYrqE HTTP/1.1" 200 276 0.001000
+127.0.0.1 - - [2026-08-22 22:15:48] "GET /static/audio/heartbeat_slow.mp3 HTTP/1.1" 404 331 0.001127
+127.0.0.1 - - [2026-08-22 22:15:48] "POST /socket.io/?EIO=4&transport=polling&t=Q0hYrro&sid=5Jg8UHJHBQHpeqLAAAAA HTTP/1.1" 200 195 0.001619
+127.0.0.1 - - [2026-08-22 22:15:48] "GET /socket.io/?EIO=4&transport=polling&t=Q0hYrrs&sid=5Jg8UHJHBQHpeqLAAAAA HTTP/1.1" 200 471 0.000634
+127.0.0.1 - - [2026-08-22 22:15:48] "GET /static/audio/heartbeat_slow.mp3 HTTP/1.1" 404 331 0.000799
+127.0.0.1 - - [2026-08-22 22:15:49] "GET /static/audio/heartbeat_slow.mp3 HTTP/1.1" 404 331 0.000841
+127.0.0.1 - - [2026-08-22 22:15:49] "GET /admin HTTP/1.1" 200 12665 0.005252
+127.0.0.1 - - [2026-08-22 22:15:49] "GET /socket.io/?EIO=4&transport=polling&t=Q0hYrwM HTTP/1.1" 200 276 0.000354
+127.0.0.1 - - [2026-08-22 22:15:49] "POST /socket.io/?EIO=4&transport=polling&t=Q0hYryh&sid=TXVqlumGMpe52b0XAAAC HTTP/1.1" 200 195 0.003663
+127.0.0.1 - - [2026-08-22 22:15:49] "GET /socket.io/?EIO=4&transport=polling&t=Q0hYryl&sid=TXVqlumGMpe52b0XAAAC HTTP/1.1" 200 157 0.000162
+127.0.0.1 - - [2026-08-22 22:15:49] "GET /socket.io/?EIO=4&transport=polling&t=Q0hYrzy&sid=TXVqlumGMpe52b0XAAAC HTTP/1.1" 200 157 0.000247
+127.0.0.1 - - [2026-08-22 22:15:50] "GET /static/audio/countdown.mp3 HTTP/1.1" 404 331 0.000899
+127.0.0.1 - - [2026-08-22 22:15:51] "GET /static/audio/countdown.mp3 HTTP/1.1" 404 331 0.000855
+127.0.0.1 - - [2026-08-22 22:15:52] "GET /static/audio/countdown.mp3 HTTP/1.1" 404 331 0.000988
+127.0.0.1 - - [2026-08-22 22:15:53] "GET /static/audio/bgm_horror.mp3 HTTP/1.1" 404 331 0.000761
+127.0.0.1 - - [2026-08-22 22:15:53] "GET /static/audio/correct.mp3 HTTP/1.1" 404 331 0.000838
+127.0.0.1 - - [2026-08-22 22:15:54] "GET /socket.io/?EIO=4&transport=websocket&sid=TXVqlumGMpe52b0XAAAC HTTP/1.1" 200 - 4.878808
+127.0.0.1 - - [2026-08-22 22:15:54] "GET /socket.io/?EIO=4&transport=websocket&sid=5Jg8UHJHBQHpeqLAAAAA HTTP/1.1" 200 - 5.337715
 Starting Yandere Horror Server on http://0.0.0.0:5000
