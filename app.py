@@ -67,12 +67,12 @@ def sanitize_questions_for_client(questions):
     client_q = []
     for q in questions:
         client_q.append({
-            "id": q["id"],
-            "question": q["question"],
-            "options": q["options"],
-            "answer": q["answer"],
-            "commentary": q["commentary"],
-            "maid_scold": q["maid_scold"]
+            "id": q.get("id", 1),
+            "question": q.get("question", ""),
+            "options": q.get("options", []),
+            "answer": q.get("answer", "A"),
+            "commentary": q.get("commentary", ""),
+            "maid_scold": q.get("maid_scold", "")
         })
     return client_q
 
@@ -118,10 +118,13 @@ def save_questions():
         if not isinstance(new_questions, list):
             return jsonify({"success": False, "message": "Data must be a list of questions"}), 400
 
-        # Validate structure
+        # Validate structure and default missing 'answer'
         for idx, q in enumerate(new_questions, start=1):
             q["id"] = idx
-            if "question" not in q or "options" not in q or "answer" not in q:
+            if "answer" not in q or not q["answer"]:
+                opts = q.get("options", [])
+                q["answer"] = opts[0]["id"] if opts else "A"
+            if "question" not in q or "options" not in q:
                 return jsonify({"success": False, "message": f"Question {idx} is missing required fields"}), 400
 
         with open('questions.json', 'w', encoding='utf-8') as f:
@@ -248,18 +251,19 @@ def handle_submit_answer(data):
     if not room_id or room_id not in rooms_state:
         return
 
-    q_data = next((q for q in QUESTIONS if q['id'] == question_id), None)
+    q_data = next((q for q in QUESTIONS if q.get('id') == question_id), None)
     if not q_data:
         return
 
-    is_correct = (q_data['answer'] == selected_option)
+    correct_answer = q_data.get('answer', 'A')
+    is_correct = (correct_answer == selected_option)
 
     emit('answer_result', {
         "question_id": question_id,
         "is_correct": is_correct,
-        "correct_answer": q_data['answer'],
-        "commentary": q_data['commentary'],
-        "maid_scold": q_data['maid_scold']
+        "correct_answer": correct_answer,
+        "commentary": q_data.get('commentary', ''),
+        "maid_scold": q_data.get('maid_scold', '')
     })
 
 # --- Remote Camera Streaming Relay Handlers ---
