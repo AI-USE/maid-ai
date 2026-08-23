@@ -8,7 +8,15 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'yandere_horror_escape_secret_key_2025')
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent', max_http_buffer_size=5 * 1024 * 1024)
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode='gevent',
+    max_http_buffer_size=10 * 1024 * 1024,
+    ping_timeout=60,
+    ping_interval=25,
+    always_connect=True
+)
 
 def load_json(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -83,7 +91,7 @@ def builder():
 @app.errorhandler(500)
 def handle_500_error(e):
     if request.path.startswith('/api/'):
-        return jsonify({"success": False, "error": "Internal Server Error"}), 500
+        return jsonify({"success": False, "error": "Internal Server Error"}), 500, {'Content-Type': 'application/json'}
     return "Internal Server Error", 500
 
 @app.route('/api/questions')
@@ -92,10 +100,15 @@ def get_questions():
     try:
         if os.path.exists('questions.json'):
             QUESTIONS = load_json('questions.json')
-        return jsonify(sanitize_questions_for_client(QUESTIONS))
     except Exception as e:
-        print(f"Error serving questions API: {e}")
-        return jsonify(sanitize_questions_for_client(QUESTIONS))
+        print(f"Error reloading questions.json: {e}")
+
+    try:
+        data = sanitize_questions_for_client(QUESTIONS)
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error sanitizing questions: {e}")
+        return jsonify([]), 200
 
 @app.route('/api/questions/save', methods=['POST'])
 def save_questions():
