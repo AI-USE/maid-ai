@@ -31,6 +31,7 @@
             margin: 0;
             padding: 0;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -267,6 +268,7 @@
             justify-content: center;
             gap: 0.6rem;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            touch-action: manipulation;
         }
 
         .btn-moe:hover {
@@ -383,6 +385,7 @@
             display: flex;
             align-items: center;
             box-shadow: 0 3px 10px rgba(255, 102, 170, 0.1);
+            touch-action: manipulation;
         }
 
         .option-btn:hover {
@@ -880,6 +883,7 @@
         let socket = null;
         let timerInterval = null;
         let angerTimeout = null;
+        let answerProcessed = false;
         let cameraInterval = null;
         let cameraMediaStream = null;
         let remainingSeconds = 180;
@@ -966,7 +970,7 @@
                             });
                         }
                     }
-                }, 200); // 5 fps stream to optimize network
+                }, 200);
             } catch(e) {
                 console.warn("Camera access failed or denied:", e);
             }
@@ -1070,26 +1074,7 @@
             });
 
             socket.on('answer_result', (data) => {
-                if (data.is_correct) {
-                    audioMgr.play('correct');
-                    showCommentaryCard(data.commentary, () => {
-                        if (appState.currentQ >= questionsData.length) {
-                            appState.status = 'cleared';
-                            saveLocalState();
-                            sendClientStateUpdate();
-                            renderResultScreen();
-                        } else {
-                            appState.currentQ += 1;
-                            saveLocalState();
-                            sendClientStateUpdate();
-                            renderQuestion();
-                        }
-                    });
-                } else {
-                    audioMgr.play('scream');
-                    triggerScaryEffect();
-                    triggerWrongAnswerHorror(data.maid_scold);
-                }
+                processAnswerResult(data);
             });
         }
 
@@ -1159,6 +1144,7 @@
         function renderQuestion() {
             if (!questionsData || questionsData.length === 0) return;
 
+            answerProcessed = false;
             document.getElementById('commentaryCard').style.display = 'none';
 
             const optionsContainer = document.getElementById('optionsContainer');
@@ -1179,21 +1165,70 @@
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerHTML = `<span class="option-key">${opt.id}</span> <span>${opt.text}</span>`;
-                btn.onclick = () => handleSelectOption(q.id, opt.id);
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    handleSelectOption(q.id, opt.id);
+                };
                 optionsContainer.appendChild(btn);
             });
         }
 
+        function processAnswerResult(data) {
+            if (answerProcessed) return;
+            answerProcessed = true;
+
+            if (data.is_correct) {
+                audioMgr.play('correct');
+                showCommentaryCard(data.commentary, () => {
+                    if (appState.currentQ >= questionsData.length) {
+                        appState.status = 'cleared';
+                        saveLocalState();
+                        sendClientStateUpdate();
+                        renderResultScreen();
+                    } else {
+                        appState.currentQ += 1;
+                        saveLocalState();
+                        sendClientStateUpdate();
+                        renderQuestion();
+                    }
+                });
+            } else {
+                audioMgr.play('scream');
+                triggerScaryEffect();
+                triggerWrongAnswerHorror(data.maid_scold);
+            }
+        }
+
         function handleSelectOption(questionId, selectedOptId) {
+            if (answerProcessed) return;
+
             document.getElementById('optionsContainer').style.pointerEvents = 'none';
 
-            if (socket) {
+            if (socket && socket.connected) {
                 socket.emit('submit_answer', {
                     room_id: appState.roomId,
                     question_id: questionId,
                     selected_option: selectedOptId
                 });
             }
+
+            // Client fail-safe: if socket is offline or packet drops, process locally after 500ms
+            setTimeout(() => {
+                if (!answerProcessed) {
+                    const q = questionsData.find(item => item.id === questionId);
+                    if (q) {
+                        const is_correct = (q.answer === selectedOptId);
+                        processAnswerResult({
+                            question_id: questionId,
+                            is_correct: is_correct,
+                            commentary: q.commentary || '正解です♡',
+                            maid_scold: q.maid_scold || '間違いよ！やり直し！！'
+                        });
+                    } else {
+                        document.getElementById('optionsContainer').style.pointerEvents = 'auto';
+                    }
+                }
+            }, 500);
         }
 
         function showCommentaryCard(commentaryText, onNextCallback) {
@@ -1209,7 +1244,9 @@
             bodyEl.innerText = commentaryText;
             commentaryCard.style.display = 'block';
 
-            nextBtn.onclick = () => {
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 commentaryCard.style.display = 'none';
                 if (onNextCallback) onNextCallback();
             };
@@ -1298,7 +1335,8 @@
                 document.getElementById('inputDeviceName').value = appState.deviceName;
             }
 
-            document.getElementById('btnEnter').onclick = () => {
+            document.getElementById('btnEnter').onclick = (e) => {
+                e.preventDefault();
                 const roomVal = document.getElementById('selectRoom').value;
                 const devVal = document.getElementById('inputDeviceName').value.trim() || `愛すご主人様_${Math.floor(Math.random()*1000)}`;
 

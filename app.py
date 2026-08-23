@@ -62,6 +62,7 @@ def sanitize_questions_for_client(questions):
             "id": q["id"],
             "question": q["question"],
             "options": q["options"],
+            "answer": q["answer"],
             "commentary": q["commentary"],
             "maid_scold": q["maid_scold"]
         })
