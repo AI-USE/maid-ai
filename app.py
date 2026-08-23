@@ -80,9 +80,22 @@ def admin():
 def builder():
     return render_template('builder.html')
 
+@app.errorhandler(500)
+def handle_500_error(e):
+    if request.path.startswith('/api/'):
+        return jsonify({"success": False, "error": "Internal Server Error"}), 500
+    return "Internal Server Error", 500
+
 @app.route('/api/questions')
 def get_questions():
-    return jsonify(sanitize_questions_for_client(QUESTIONS))
+    global QUESTIONS
+    try:
+        if os.path.exists('questions.json'):
+            QUESTIONS = load_json('questions.json')
+        return jsonify(sanitize_questions_for_client(QUESTIONS))
+    except Exception as e:
+        print(f"Error serving questions API: {e}")
+        return jsonify(sanitize_questions_for_client(QUESTIONS))
 
 @app.route('/api/questions/save', methods=['POST'])
 def save_questions():

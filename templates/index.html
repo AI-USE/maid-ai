@@ -1317,15 +1317,31 @@
         window.addEventListener('DOMContentLoaded', async () => {
             loadLocalState();
 
-            try {
-                const [qRes, tRes] = await Promise.all([
-                    fetch('/api/questions'),
-                    fetch('/api/titles')
-                ]);
-                questionsData = await qRes.json();
-                titlesData = await tRes.json();
-            } catch(e) {
-                console.error("Failed to load game config data:", e);
+            const fetchConfig = async () => {
+                try {
+                    const qRes = await fetch('/api/questions');
+                    if (qRes.ok) {
+                        const contentType = qRes.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            questionsData = await qRes.json();
+                        }
+                    }
+                    const tRes = await fetch('/api/titles');
+                    if (tRes.ok) {
+                        const contentType = tRes.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            titlesData = await tRes.json();
+                        }
+                    }
+                } catch(e) {
+                    console.error("Failed to load game config data:", e);
+                }
+            };
+
+            await fetchConfig();
+            if (!questionsData || questionsData.length === 0) {
+                // Retry once after short delay if initial fetch failed
+                setTimeout(fetchConfig, 1000);
             }
 
             if (appState.roomId) {
